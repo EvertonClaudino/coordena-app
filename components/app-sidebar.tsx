@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, BookOpen, Puzzle, Users, GraduationCap,
   CalendarDays, FileText, LogOut, User, ClipboardList, Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type UserRole = "coordenador" | "formador" | "formando";
+export type UserRole = "COORDENADOR" | "FORMADOR" | "FORMANDO"; // ← maiúsculas
 
 interface NavItem {
   label: string;
@@ -18,32 +19,26 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  // Todos
-  { label: "Dashboard",          href: "/dashboard",                     icon: LayoutDashboard, roles: ["coordenador", "formador", "formando"] },
-  // Formador
-  { label: "O Meu Perfil",       href: "/dashboard/perfil",              icon: User,            roles: ["formador"] },
-  { label: "Disponibilidades",   href: "/dashboard/disponibilidades",    icon: CalendarDays,    roles: ["formador"] },
-  { label: "Módulos Atribuídos", href: "/dashboard/modulos-atribuidos",  icon: BookOpen,        roles: ["formador"] },
-  { label: "Notas de Alunos",    href: "/dashboard/notas",               icon: ClipboardList,   roles: ["formador"] },
-  { label: "Documentos",         href: "/dashboard/documentos",          icon: FileText,        roles: ["formador", "coordenador"] },
-  { label: "Convites",           href: "/dashboard/convites",            icon: Mail,            roles: ["formador"] },
-  // Coordenador
-  { label: "Cursos",             href: "/dashboard/cursos",              icon: BookOpen,        roles: ["coordenador"] },
-  { label: "Módulos",            href: "/dashboard/modulos",             icon: Puzzle,          roles: ["coordenador"] },
-  { label: "Formadores",         href: "/dashboard/formadores",          icon: Users,           roles: ["coordenador"] },
-  { label: "Formandos",          href: "/dashboard/formandos",           icon: GraduationCap,   roles: ["coordenador"] },
-  { label: "Calendário",         href: "/dashboard/calendario",          icon: CalendarDays,    roles: ["coordenador", "formador", "formando"] },
-  // Formando
-  { label: "Os Meus Cursos",     href: "/dashboard/meus-cursos",         icon: BookOpen,        roles: ["formando"] },
-  { label: "Minhas Notas",       href: "/dashboard/notas",               icon: ClipboardList,   roles: ["formando"] },
-
-
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["COORDENADOR", "FORMADOR", "FORMANDO"] },
+  { label: "O Meu Perfil", href: "/dashboard/perfil", icon: User, roles: ["FORMADOR"] },
+  { label: "Disponibilidades", href: "/dashboard/disponibilidades", icon: CalendarDays, roles: ["FORMADOR"] },
+  { label: "Módulos Atribuídos", href: "/dashboard/modulos-atribuidos", icon: BookOpen, roles: ["FORMADOR"] },
+  { label: "Notas de Alunos", href: "/dashboard/notas", icon: ClipboardList, roles: ["FORMADOR"] },
+  { label: "Documentos", href: "/dashboard/documentos", icon: FileText, roles: ["FORMADOR", "COORDENADOR"] },
+  { label: "Convites", href: "/dashboard/convites", icon: Mail, roles: ["FORMADOR"] },
+  { label: "Cursos", href: "/dashboard/cursos", icon: BookOpen, roles: ["COORDENADOR"] },
+  { label: "Módulos", href: "/dashboard/modulos", icon: Puzzle, roles: ["COORDENADOR"] },
+  { label: "Formadores", href: "/dashboard/formadores", icon: Users, roles: ["COORDENADOR"] },
+  { label: "Formandos", href: "/dashboard/formandos", icon: GraduationCap, roles: ["COORDENADOR"] },
+  { label: "Calendário", href: "/dashboard/calendario", icon: CalendarDays, roles: ["COORDENADOR", "FORMADOR", "FORMANDO"] },
+  { label: "Os Meus Cursos", href: "/dashboard/meus-cursos", icon: BookOpen, roles: ["FORMANDO"] },
+  { label: "Minhas Notas", href: "/dashboard/notas", icon: ClipboardList, roles: ["FORMANDO"] },
 ];
 
 const ROLE_CONFIG: Record<UserRole, { label: string; active: string; logo: string; color: string }> = {
-  coordenador: { label: "COORDENADOR", active: "bg-indigo-600 text-white", logo: "bg-indigo-600", color: "#4f46e5" },
-  formador:    { label: "FORMADOR",    active: "bg-purple-600 text-white", logo: "bg-purple-600", color: "#9333ea" },
-  formando:    { label: "FORMANDO",    active: "bg-teal-500 text-white",   logo: "bg-teal-500",   color: "#14b8a6" },
+  COORDENADOR: { label: "COORDENADOR", active: "bg-indigo-600 text-white", logo: "bg-indigo-600", color: "#4f46e5" },
+  FORMADOR: { label: "FORMADOR", active: "bg-purple-600 text-white", logo: "bg-purple-600", color: "#9333ea" },
+  FORMANDO: { label: "FORMANDO", active: "bg-teal-500 text-white", logo: "bg-teal-500", color: "#14b8a6" },
 };
 
 interface AppSidebarProps {
@@ -52,16 +47,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
-  const router   = useRouter();
-  const cfg      = ROLE_CONFIG[user.role];
-  const visible  = NAV_ITEMS.filter((item) => item.roles.includes(user.role));
-
-  function handleLogout() {
-    // Com NextAuth:  signOut({ callbackUrl: "/login" })
-    // Com Clerk:     signOut(() => router.push("/login"))
-    // Com Supabase:  await supabase.auth.signOut(); router.push("/login")
-    router.push("/login");
-  }
+  const cfg = ROLE_CONFIG[user.role];
+  const visible = NAV_ITEMS.filter((item) => item.roles.includes(user.role));
 
   return (
     <aside className="flex h-screen w-[268px] shrink-0 flex-col border-r border-gray-200 bg-white">
@@ -81,7 +68,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 px-3 py-4 flex-1 overflow-y-auto">
         {visible.map((item) => {
-          const Icon     = item.icon;
+          const Icon = item.icon;
           const isActive = pathname === item.href;
           return (
             <Link
@@ -104,8 +91,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
       {/* Logout */}
       <div className="border-t border-gray-200 px-3 py-4">
         <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all curssors-pointer"
+          onClick={() => signOut({ callbackUrl: "/login" })} // ← NextAuth signOut
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
         >
           <LogOut className="h-[18px] w-[18px] shrink-0" />
           Terminar sessão

@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───────────────────────────────────────
+enum Role {
+  COORDENADOR
+  FORMADOR
+  FORMANDO
+}
+
+enum StatusCurso {
+  ATIVO
+  PAUSADO
+  ENCERRADO
+}
+
+enum StatusPresenca {
+  PRESENTE
+  AUSENTE
+  JUSTIFICADO
+}
+
+// ─── UTILIZADOR ──────────────────────────────────
+model User {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String?
+  role      Role     @default(FORMANDO)
+  createdAt DateTime @default(now())
+
+  accounts  Account[]
+  sessions  Session[]
+
+  formador  Formador?
+  formando  Formando?
+}
+
+// ─── AUTH.JS ─────────────────────────────────────
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── FORMADOR ────────────────────────────────────
+model Formador {
+  id            String  @id @default(uuid())
+  especialidade String?
+  userId        String  @unique
+  user          User    @relation(fields: [userId], references: [id])
+
+  modulosLecionados FormadorModulo[]
+  aulas             Aula[]
+  avaliacoes        Avaliacao[]
+  presencas         Presenca[]
+}
+
+// ─── FORMANDO ────────────────────────────────────
+model Formando {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  inscricoes Inscricao[]
+  avaliacoes Avaliacao[]
+  presencas  Presenca[]
+}
+
+// ─── CURSO ───────────────────────────────────────
+model Curso {
+  id        String      @id @default(uuid())
+  nome      String
+  descricao String?
+  status    StatusCurso @default(ATIVO)
+  createdAt DateTime    @default(now())
+
+  modulos    Modulo[]
+  inscricoes Inscricao[]
+}
+
+// ─── MÓDULO ──────────────────────────────────────
+model Modulo {
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+  ordem     Int
+  cursoId   String
+  curso     Curso   @relation(fields: [cursoId], references: [id])
+
+  formadores FormadorModulo[]
+  aulas      Aula[]
+  avaliacoes Avaliacao[]
+}
+
+// ─── FORMADOR <-> MÓDULO ─────────────────────────
+model FormadorModulo {
+  formadorId String
+  moduloId   String
+  formador   Formador @relation(fields: [formadorId], references: [id])
+  modulo     Modulo   @relation(fields: [moduloId], references: [id])
+
+  @@id([formadorId, moduloId])
+}
+
+// ─── INSCRIÇÃO ───────────────────────────────────
+model Inscricao {
+  id         String   @id @default(uuid())
+  formandoId String
+  cursoId    String
+  dataInicio DateTime @default(now())
+  formando   Formando @relation(fields: [formandoId], references: [id])
+  curso      Curso    @relation(fields: [cursoId], references: [id])
+
+  @@unique([formandoId, cursoId])
+}
+
+// ─── AULA ────────────────────────────────────────
+model Aula {
+  id         String   @id @default(uuid())
+  titulo     String
+  dataHora   DateTime
+  duracao    Int
+  moduloId   String
+  formadorId String
+  modulo     Modulo   @relation(fields: [moduloId], references: [id])
+  formador   Formador @relation(fields: [formadorId], references: [id])
+
+  presencas Presenca[]
+}
+
+// ─── PRESENÇA ────────────────────────────────────
+model Presenca {
+  id            String         @id @default(uuid())
+  status        StatusPresenca @default(AUSENTE)
+  justificativa String?
+  aulaId        String
+  formandoId    String
+  formadorId    String
+  aula          Aula     @relation(fields: [aulaId], references: [id])
+  formando      Formando @relation(fields: [formandoId], references: [id])
+  formador      Formador @relation(fields: [formadorId], references: [id])
+
+  @@unique([aulaId, formandoId])
+}
+
+// ─── AVALIAÇÃO ───────────────────────────────────
+model Avaliacao {
+  id         String   @id @default(uuid())
+  descricao  String?
+  nota       Float
+  moduloId   String
+  formandoId String
+  formadorId String
+  createdAt  DateTime @default(now())
+  modulo     Modulo   @relation(fields: [moduloId], references: [id])
+  formando   Formando @relation(fields: [formandoId], references: [id])
+  formador   Formador @relation(fields: [formadorId], references: [id])
+}

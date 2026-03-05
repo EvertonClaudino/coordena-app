@@ -11,33 +11,35 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signIn } from 'next-auth/react'
+
 
 // ─── Role Config ──────────────────────────────────────────────────────────────
 
 const ROLE_CONFIG = {
   coordenador: {
-    label:       "Coordenador",
+    label: "Coordenador",
     description: "Acesso à gestão completa da plataforma",
-    icon:        UserCog,
-    gradient:    "from-indigo-500 to-indigo-600",
-    ring:        "focus-visible:ring-indigo-500",
-    btn:         "bg-indigo-600 hover:bg-indigo-700",
+    icon: UserCog,
+    gradient: "from-indigo-500 to-indigo-600",
+    ring: "focus-visible:ring-indigo-500",
+    btn: "bg-indigo-600 hover:bg-indigo-700",
   },
   formador: {
-    label:       "Formador",
+    label: "Formador",
     description: "Acesso às suas turmas e documentos",
-    icon:        BookOpen,
-    gradient:    "from-purple-500 to-purple-600",
-    ring:        "focus-visible:ring-purple-500",
-    btn:         "bg-purple-600 hover:bg-purple-700",
+    icon: BookOpen,
+    gradient: "from-purple-500 to-purple-600",
+    ring: "focus-visible:ring-purple-500",
+    btn: "bg-purple-600 hover:bg-purple-700",
   },
   formando: {
-    label:       "Formando",
+    label: "Formando",
     description: "Acesso aos seus cursos e calendário",
-    icon:        GraduationCap,
-    gradient:    "from-cyan-500 to-teal-500",
-    ring:        "focus-visible:ring-cyan-500",
-    btn:         "bg-cyan-600 hover:bg-cyan-700",
+    icon: GraduationCap,
+    gradient: "from-cyan-500 to-teal-500",
+    ring: "focus-visible:ring-cyan-500",
+    btn: "bg-cyan-600 hover:bg-cyan-700",
   },
 } as const;
 
@@ -46,21 +48,21 @@ type RoleKey = keyof typeof ROLE_CONFIG;
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LoginRolePage() {
-  const params   = useParams();
-  const router   = useRouter();
-  const role     = (params?.role as RoleKey) ?? "coordenador";
-  const config   = ROLE_CONFIG[role] ?? ROLE_CONFIG.coordenador;
-  const Icon     = config.icon;
+  const params = useParams();
+  const router = useRouter();
+  const role = (params?.role as RoleKey) ?? "coordenador";
+  const config = ROLE_CONFIG[role] ?? ROLE_CONFIG.coordenador;
+  const Icon = config.icon;
 
-  const [email,    setEmail]    = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPwd,  setShowPwd]  = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (!email || !password) {
       setError("Preenche todos os campos.");
@@ -69,11 +71,22 @@ export default function LoginRolePage() {
 
     setLoading(true);
 
-    // Substitui pelo teu sistema de auth (NextAuth signIn, Supabase, etc.)
-    await new Promise((r) => setTimeout(r, 1200)); // simula chamada à API
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
 
-    // Após autenticação com sucesso, redireciona para o dashboard
+    setLoading(false);
+
+    if (result?.error) {
+      setError("Email ou palavra-passe inválidos.");
+      return;
+    }
+
+    // Sucesso: redireciona para o dashboard
     router.push("/dashboard");
+    router.refresh();
   }
 
   return (

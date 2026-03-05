@@ -1,30 +1,18 @@
-import { redirect } from "next/navigation";
-import { CoordenadorDashboard } from "@/app/dashboard/_components/coordenador-dashboard";
-import { FormadorDashboard } from "@/app/dashboard/_components/formador-dashboard";
-import { FormandoDashboard } from "@/app/dashboard/_components/formando-dashboard";
-import { UserRole } from "@/components/app-sidebar";
+import { redirect } from 'next/navigation'
+import { auth } from '@/auth'
+import { CoordenadorDashboard } from '@/app/dashboard/_components/coordenador-dashboard'
+import { FormadorDashboard } from '@/app/dashboard/_components/formador-dashboard'
+import { FormandoDashboard } from '@/app/dashboard/_components/formando-dashboard'
 
-// ─── Substitui pelo teu sistema de auth ──────────────────────────────────────
-async function getAuthUser(): Promise<{ name: string; role: UserRole } | null> {
-  return { name: "Carlos Mendes", role: "formando" };
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function DashboardPage() {
-  const user = await getAuthUser();
-  if (!user) redirect("/login");
+  const session = await auth()
+  if (!session?.user) redirect('/login')
 
-  if (user.role === "coordenador") {
-    return <CoordenadorDashboard userName={user.name} />;
-  }
+  const { name, role } = session.user
 
-  if (user.role === "formador") {
-    return <FormadorDashboard userName={user.name} />;
-  }
+  if (role === 'COORDENADOR') return <CoordenadorDashboard userName={name ?? ''} />
+  if (role === 'FORMADOR') return <FormadorDashboard userName={name ?? ''} />
+  if (role === 'FORMANDO') return <FormandoDashboard userName={name ?? ''} />
 
-  if (user.role === "formando") {
-    return <FormandoDashboard userName={user.name} />;
-  }
-
-  redirect("/login");
+  redirect('/login')
 }
