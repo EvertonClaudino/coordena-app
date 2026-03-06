@@ -10,6 +10,40 @@ export async function getCoordenadorStats() {
     return { cursos, formadores, formandos }
 }
 
+export type CursoComDetalhes = {
+  id: string
+  nome: string
+  descricao: string | null
+  dataInicio: Date | null
+  dataFim: Date | null
+  cargaHoraria: number
+  status: 'ATIVO' | 'PAUSADO' | 'ENCERRADO'
+  createdAt: Date
+  modulos: Array<{
+    id: string
+    nome: string
+    descricao: string | null
+    ordem: number
+    cargaHoraria: number
+  }>
+  formandos: number
+}
+
+export async function getCursos(): Promise<CursoComDetalhes[]> {
+  const cursos = await prisma.curso.findMany({
+    include: {
+      modulos: true,
+      inscricoes: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  return cursos.map(curso => ({
+    ...curso,
+    formandos: curso.inscricoes.length,
+  }))
+}
+
 export async function getProximasSessoes() {
     const agora = new Date()
 
