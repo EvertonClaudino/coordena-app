@@ -107,6 +107,8 @@ model Formando {
   inscricoes Inscricao[]
   avaliacoes Avaliacao[]
   presencas  Presenca[]
+  documentos Documento[]
+  
 }
 
 // ─── CURSO ───────────────────────────────────────
@@ -205,12 +207,14 @@ model Avaliacao {
 
 // ─── DOCUMENTO ───────────────────────────────────
 model Documento {
-  id          String         @id @default(uuid())
-  tipo        String
-  numero      String
-  dataEmissao DateTime
-  dataExpiracao DateTime?
-  status      StatusDocumento @default(VALIDO)
-  formandoId  String
-  formando    Formando       @relation(fields: [formandoId], references: [id])
+  id           String    @id @default(uuid())
+  nome         String
+  numero       String
+  dataEmissao  DateTime
+  dataValidade DateTime?
+  formadorId   String?
+  formador     Formador? @relation(fields: [formadorId], references: [id])
+  formandoId   String?
+  formando     Formando? @relation(fields: [formandoId], references: [id])
+  createdAt    DateTime  @default(now())
 }

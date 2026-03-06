@@ -67,6 +67,32 @@ export async function getFormandosEmRisco(): Promise<FormandoRiscoResult[]> {
     }))
 }
 
+// ─── Lista de Formadores (Coordenador) ────────────────────────────────────────
+
+export async function getFormadores() {
+    const formadores = await prisma.formador.findMany({
+        include: {
+            user: true,
+            modulosLecionados: {
+                include: { modulo: true },
+            },
+        },
+        orderBy: { user: { nome: 'asc' } },
+    })
+
+    return formadores.map((f: (typeof formadores)[0]) => ({
+        id: f.id,
+        userId: f.userId,
+        nome: f.user.nome,
+        email: f.user.email,
+        especialidade: f.especialidade,
+        tags: f.modulosLecionados.map((m) => m.modulo.nome),
+        status: 'aceite' as const,
+        favorito: false,
+    }))
+}
+
 // ─── Tipos exportados para usar nos componentes ───────────────────────────────
 export type ProximaSessao = Awaited<ReturnType<typeof getProximasSessoes>>[number]
 export type FormandoEmRisco = Awaited<ReturnType<typeof getFormandosEmRisco>>[number]
+export type FormadorItem = Awaited<ReturnType<typeof getFormadores>>[number]
