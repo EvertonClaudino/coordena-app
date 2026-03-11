@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import { useState } from "react";
 import { Plus, Search, Star, Tag, Users, Mail } from "lucide-react";
@@ -22,7 +23,7 @@ import { Label } from "@/components/ui/label";
 type FormadorStatus = "aceite" | "pendente";
 
 interface Formador {
-    id: number;
+    id: string;
     nome: string;
     email: string;
     avatar?: string;
@@ -33,35 +34,7 @@ interface Formador {
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const formadoresData: Formador[] = [
-    {
-        id: 1,
-        nome: "Ana Rodrigues",
-        email: "ana.rodrigues@email.com",
-        avatar: "https://i.pravatar.cc/150?img=47",
-        tags: ["Design", "Photoshop", "Redes", "TCP/IP"],
-        status: "aceite",
-        favorito: true,
-    },
-    {
-        id: 2,
-        nome: "Pedro Santos",
-        email: "pedro.santos@email.com",
-        avatar: "https://i.pravatar.cc/150?img=12",
-        tags: ["HTML", "CSS", "JavaScript", "SQL"],
-        status: "aceite",
-        favorito: false,
-    },
-    {
-        id: 3,
-        nome: "Maria Fernandes",
-        email: "maria.fernandes@email.com",
-        avatar: "https://i.pravatar.cc/150?img=45",
-        tags: ["Marketing", "SEO", "Redes Sociais", "Google Ads"],
-        status: "pendente",
-        favorito: true,
-    },
-];
+// Removido mock data. Os formadores serão carregados da base de dados.
 
 // ─── Convidar Dialog ──────────────────────────────────────────────────────────
 
@@ -118,9 +91,11 @@ function ConvidarDialog() {
 function FormadorCard({
     formador,
     onToggleFavorito,
+    onDelete,
 }: {
     formador: Formador;
-    onToggleFavorito: (id: number) => void;
+    onToggleFavorito: (id: string) => void;
+    onDelete: (id: string) => void;
 }) {
     const initials = formador.nome
         .split(" ")
@@ -129,6 +104,7 @@ function FormadorCard({
         .join("")
         .toUpperCase();
 
+    const [showConfirm, setShowConfirm] = React.useState(false);
     return (
         <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 hover:border-indigo-200 hover:shadow-sm transition-all">
             {/* Header — Avatar + Name + Star */}
@@ -145,20 +121,42 @@ function FormadorCard({
                         <h3 className="text-base font-bold text-gray-900 leading-tight">
                             {formador.nome}
                         </h3>
-                        <button
-                            onClick={() => onToggleFavorito(formador.id)}
-                            className="shrink-0 transition-transform hover:scale-110"
-                            aria-label="Favorito"
-                        >
-                            <Star
-                                className={cn(
-                                    "h-5 w-5 transition-colors",
-                                    formador.favorito
-                                        ? "fill-amber-400 text-amber-400"
-                                        : "text-gray-300 hover:text-amber-300",
-                                )}
-                            />
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => onToggleFavorito(formador.id)}
+                                className="shrink-0 transition-transform hover:scale-110"
+                                aria-label="Favorito"
+                            >
+                                <Star
+                                    className={cn(
+                                        "h-5 w-5 transition-colors",
+                                        formador.favorito
+                                            ? "fill-amber-400 text-amber-400"
+                                            : "text-gray-300 hover:text-amber-300",
+                                    )}
+                                />
+                            </button>
+                            <button
+                                onClick={() => setShowConfirm(true)}
+                                className="shrink-0 transition-transform hover:scale-110 text-red-500"
+                                aria-label="Eliminar"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 4h8a2 2 0 0 1 2 2v1H6V6a2 2 0 0 1 2-2z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
                         <Mail className="h-3 w-3 shrink-0" />
@@ -181,6 +179,36 @@ function FormadorCard({
 
             {/* Footer — Status + Ver Perfil */}
             <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-3">
+                {/* Confirmação de eliminação */}
+                {showConfirm && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <div className="bg-white border border-red-200 rounded-xl shadow-lg p-6 flex flex-col items-center gap-4">
+                            <span className="text-red-600 text-xl font-bold">
+                                Eliminar formador?
+                            </span>
+                            <span className="text-gray-700">
+                                Esta ação não pode ser desfeita.
+                            </span>
+                            <div className="flex gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowConfirm(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                    onClick={() => {
+                                        onDelete(formador.id);
+                                        setShowConfirm(false);
+                                    }}
+                                >
+                                    Eliminar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {formador.status === "aceite" ? (
                     <span className="rounded-full border border-green-200 bg-green-50 px-4 py-1 text-sm font-medium text-green-600">
                         Aceite
@@ -206,9 +234,67 @@ function FormadorCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FormadoresPage() {
+    // Eliminar formador
+    async function handleDeleteFormador(id: string) {
+        const res = await fetch("/api/formadores/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+        });
+        if (res.ok) {
+            fetchFormadores();
+        } else {
+            alert("Erro ao eliminar formador.");
+        }
+    }
     const [search, setSearch] = useState("");
     const [apenasFevoritos, setApenasFavoritos] = useState(false);
-    const [formadores, setFormadores] = useState<Formador[]>(formadoresData);
+    const [formadores, setFormadores] = useState<Formador[]>([]);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    // Carregar formadores reais
+    async function fetchFormadores() {
+        const res = await fetch("/api/formadores");
+        if (res.ok) {
+            const data = await res.json();
+            setFormadores(
+                data.map((f) => ({
+                    id: f.id,
+                    nome: f.user.nome,
+                    email: f.user.email,
+                    avatar: f.user.avatar || undefined,
+                    tags: f.especialidade ? [f.especialidade] : [],
+                    status: "aceite", // Ajuste conforme status real
+                    favorito: false,
+                })),
+            );
+        }
+    }
+    // Carregar ao montar
+    React.useEffect(() => {
+        fetchFormadores();
+    }, []);
+    // Atualizar lista após criar conta
+    async function handleCriarConta() {
+        const nome = document.getElementById("nome-criar").value;
+        const email = document.getElementById("email-criar").value;
+        const senha = document.getElementById("senha-criar").value;
+        const role = "FORMADOR";
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome, email, senha, role }),
+        });
+        if (res.ok) {
+            setOpenDialog(false);
+            setShowSuccess(true);
+            fetchFormadores();
+        } else {
+            const data = await res.json();
+            setShowSuccess(false);
+            alert(data.error || "Erro ao criar conta.");
+        }
+    }
 
     const toggleFavorito = (id: number) => {
         setFormadores((prev) =>
@@ -275,7 +361,7 @@ export default function FormadoresPage() {
 
                     <ConvidarDialog />
                     {/* Botão Criar Conta Formador */}
-                    <Dialog>
+                    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                         <DialogTrigger asChild>
                             <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white shadow-sm">
                                 <Plus className="h-4 w-4" />
@@ -308,57 +394,44 @@ export default function FormadoresPage() {
                                         placeholder="Ex: joao@email.com"
                                     />
                                 </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <Label htmlFor="senha-criar">
+                                        Password inicial
+                                    </Label>
+                                    <Input
+                                        id="senha-criar"
+                                        type="password"
+                                        placeholder="Escolha uma password"
+                                    />
+                                </div>
                                 {/* Adicione outros campos necessários */}
                             </div>
                             <DialogFooter>
                                 <Button
                                     className="bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={async () => {
-                                        const nome =
-                                            document.getElementById(
-                                                "nome-criar",
-                                            ).value;
-                                        const email =
-                                            document.getElementById(
-                                                "email-criar",
-                                            ).value;
-                                        // Pode adicionar senha fixa ou gerar aleatória
-                                        const senha = Math.random()
-                                            .toString(36)
-                                            .slice(-8);
-                                        const role = "FORMADOR";
-                                        const res = await fetch(
-                                            "/api/auth/register",
-                                            {
-                                                method: "POST",
-                                                headers: {
-                                                    "Content-Type":
-                                                        "application/json",
-                                                },
-                                                body: JSON.stringify({
-                                                    nome,
-                                                    email,
-                                                    senha,
-                                                    role,
-                                                }),
-                                            },
-                                        );
-                                        if (res.ok) {
-                                            alert("Conta criada com sucesso!");
-                                        } else {
-                                            const data = await res.json();
-                                            alert(
-                                                data.error ||
-                                                    "Erro ao criar conta.",
-                                            );
-                                        }
-                                    }}
+                                    onClick={handleCriarConta}
                                 >
                                     Criar Conta
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+                    {/* Mensagem de sucesso */}
+                    {showSuccess && (
+                        <div className="fixed inset-0 flex items-center justify-center z-50">
+                            <div className="bg-white border border-green-200 rounded-xl shadow-lg p-6 flex flex-col items-center gap-4">
+                                <span className="text-green-600 text-xl font-bold">
+                                    Conta criada com sucesso!
+                                </span>
+                                <Button
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    onClick={() => setShowSuccess(false)}
+                                >
+                                    OK
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -370,6 +443,7 @@ export default function FormadoresPage() {
                             key={formador.id}
                             formador={formador}
                             onToggleFavorito={toggleFavorito}
+                            onDelete={handleDeleteFormador}
                         />
                     ))}
                 </div>
