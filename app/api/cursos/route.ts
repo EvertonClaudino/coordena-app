@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
@@ -9,6 +10,7 @@ const CursoSchema = z.object({
   descricao: z.string().optional(),
   dataInicio: z.string().optional().nullable(),
   dataFim: z.string().optional().nullable(),
+  cargaHoraria: z.coerce.number().int().min(0).default(0),
   status: z.enum(["ATIVO", "PAUSADO", "ENCERRADO"]).default("ATIVO"),
 });
 
@@ -19,30 +21,14 @@ export async function GET() {
     const cursos = await prisma.curso.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        modulos: {
-          select: {
-            id: true,
-            nome: true,
-            cargaHoraria: true,
-          },
-        },
-        _count: {
-          select: { inscricoes: true },
-        },
+        modulos: true,
+        _count: { select: { inscricoes: true } },
       },
     });
 
     const cursosFormatados = cursos.map((curso) => ({
-      id: curso.id,
-      nome: curso.nome,
-      descricao: curso.descricao,
-      status: curso.status,
-      dataInicio: curso.dataInicio,
-      dataFim: curso.dataFim,
-      createdAt: curso.createdAt,
-      cargaHoraria: curso.modulos.reduce((sum, m) => sum + m.cargaHoraria, 0),
-      totalModulos: curso.modulos.length,
-      totalFormandos: curso._count.inscricoes,
+      ...curso,
+      formandos: curso._count.inscricoes,
     }));
 
     return NextResponse.json(cursosFormatados);
@@ -69,19 +55,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const { nome, descricao, dataInicio, dataFim, status } = parsed.data;
+    const { nome, descricao, dataInicio, dataFim, cargaHoraria, status } =
+      parsed.data;
 
     const curso = await prisma.curso.create({
       data: {
-        nome,
-        descricao,
+        nome: nome.trim(),
+        descricao: descricao?.trim() || null,
         dataInicio: dataInicio ? new Date(dataInicio) : null,
         dataFim: dataFim ? new Date(dataFim) : null,
+        cargaHoraria,
         status,
+      },
+      include: {
+        modulos: true,
+        inscricoes: true,
       },
     });
 
-    return NextResponse.json(curso, { status: 201 });
+    // Revalida o server component da página de cursos
+    revalidatePath("/dashboard/cursos");
+
+    return NextResponse.json(
+      { ...curso, formandos: curso.inscricoes.length },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("[POST /api/cursos]", error);
     return NextResponse.json({ error: "Erro ao criar curso" }, { status: 500 });

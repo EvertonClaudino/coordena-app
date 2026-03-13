@@ -84,7 +84,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ─── FORMADOR ────────────────────────────────────
+// ─── FORMADOR ────────────────────────────────────────────────────────────────
 model Formador {
   id            String  @id @default(uuid())
   especialidade String?
@@ -95,7 +95,7 @@ model Formador {
   aulas             Aula[]
   avaliacoes        Avaliacao[]
   presencas         Presenca[]
-  documentos        Documento[]
+  documentos        Documento[]      // ← adiciona esta linha
 }
 
 // ─── FORMANDO ────────────────────────────────────
@@ -118,6 +118,7 @@ model Curso {
   descricao String?
   dataInicio DateTime?  // ← quando começa
   dataFim    DateTime?  // ← quando termina
+  cargaHoraria Int     @default(0)
   status    StatusCurso @default(ATIVO)
   createdAt DateTime    @default(now())
 
