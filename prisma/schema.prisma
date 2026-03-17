@@ -95,6 +95,8 @@ model Formador {
   aulas             Aula[]
   avaliacoes        Avaliacao[]
   presencas         Presenca[]
+  documentos        DocumentoFormador[]
+  convites          Convite[]
 }
 
 // ─── FORMANDO ────────────────────────────────────
@@ -214,4 +216,37 @@ model Documento {
   status      StatusDocumento @default(VALIDO)
   formandoId  String
   formando    Formando       @relation(fields: [formandoId], references: [id])
+}
+
+// ─── DOCUMENTO FORMADOR ──────────────────────────
+model DocumentoFormador {
+  id          String         @id @default(uuid())
+  tipo        String
+  numero      String?
+  dataEmissao DateTime?
+  dataExpiracao DateTime?
+  status      StatusDocumento @default(EM_FALTA)
+  formadorId  String
+  formador    Formador       @relation(fields: [formadorId], references: [id])
+  createdAt   DateTime       @default(now())
+}
+
+// ─── CONVITE PARA FORMADOR ──────────────────────
+enum StatusConvite {
+  PENDENTE
+  ACEITE
+  RECUSADO
+}
+
+model Convite {
+  id         String       @id @default(uuid())
+  formadorId String
+  cursoId    String?
+  moduloId   String?
+  status     StatusConvite @default(PENDENTE)
+  descricao  String?
+  dataEnvio  DateTime     @default(now())
+  dataResposta DateTime?
+  formador   Formador     @relation(fields: [formadorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
 }
