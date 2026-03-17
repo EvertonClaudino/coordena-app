@@ -5,10 +5,10 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const formador = await prisma.formador.findUnique({
       where: { id },
