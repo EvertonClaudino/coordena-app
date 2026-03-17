@@ -216,3 +216,33 @@ export type ConvitePendente = Awaited<ReturnType<typeof getConvitesPendentesForm
 export type DocumentoEmFalta = Awaited<ReturnType<typeof getDocsEmFaltaFormador>>[number]
 export type FormandoPorModulo = Awaited<ReturnType<typeof getFormandosPorModulo>>[number]
 export type ModuloDoFormador = Awaited<ReturnType<typeof getModulosDoFormador>>[number]
+
+export async function getFormadorPerfil(userId: string) {
+    let formador = await prisma.formador.findUnique({
+        where: { userId },
+        include: { user: true },
+    })
+
+    // Se não existe, cria um novo
+    if (!formador) {
+        formador = await prisma.formador.create({
+            data: {
+                userId,
+                especialidade: '',
+                competencias: '',
+            },
+            include: { user: true },
+        })
+    }
+
+    if (!formador) return null
+
+    return {
+        userId: formador.userId,
+        id: formador.id,
+        nome: formador.user.nome,
+        email: formador.user.email,
+        especialidade: formador.especialidade || '',
+        competencias: formador.competencias || '',
+    }
+}

@@ -88,6 +88,7 @@ model VerificationToken {
 model Formador {
   id            String  @id @default(uuid())
   especialidade String?
+  competencias  String?
   userId        String  @unique
   user          User    @relation(fields: [userId], references: [id])
 
