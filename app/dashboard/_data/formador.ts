@@ -114,7 +114,7 @@ export async function getFormadorPerfil(userId: string) {
 /**
  * Fetches all modules assigned to a trainer (formador)
  * @param userId - The user ID of the trainer
- * @returns Array of assigned modules with course information
+ * @returns Array of assigned modules with course information and enrolled students
  */
 export async function getModulosAtribuidosFormador(userId: string) {
     // Find the trainer by userId
@@ -124,9 +124,25 @@ export async function getModulosAtribuidosFormador(userId: string) {
             // Include the relationship between trainer and modules
             modulosLecionados: {
                 include: {
-                    // Include module details and course information
+                    // Include module details and course information with inscriptions
                     modulo: {
-                        include: { curso: true },
+                        include: {
+                            curso: true,
+                            // Include all students inscribed in this course
+                            aulas: {
+                                include: {
+                                    presencas: {
+                                        include: {
+                                            formando: {
+                                                include: {
+                                                    user: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -136,19 +152,44 @@ export async function getModulosAtribuidosFormador(userId: string) {
     // Return empty array if trainer not found
     if (!formador) return [];
 
-    // Map the data to match the ModuloAtribuido interface
-    return formador.modulosLecionados.map((fm) => ({
-        id: fm.modulo.id,
-        nome: fm.modulo.nome,
-        // Generate a code from the module ID
-        codigo: fm.modulo.id.substring(0, 8).toUpperCase(),
-        // Get the course name
-        curso: fm.modulo.curso.nome,
-        // Tags - empty for now (can be expanded later)
-        tags: [],
-        // Number of students - hardcoded to 0 (can be calculated from inscriptions)
-        formandos: 0,
-        // Default status is active
-        status: 'Ativo' as const,
-    }));
+    // For each module, also get the inscriptions (students enrolled in the course)
+    const modulosComFormandos = await Promise.all(
+        formador.modulosLecionados.map(async (fm) => {
+            // Get all students enrolled in this course
+            const inscricoes = await prisma.inscricao.findMany({
+                where: { cursoId: fm.modulo.curso.id },
+                include: {
+                    formando: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            return {
+                id: fm.modulo.id,
+                nome: fm.modulo.nome,
+                // Generate a code from the module ID
+                codigo: fm.modulo.id.substring(0, 8).toUpperCase(),
+                // Get the course name
+                curso: fm.modulo.curso.nome,
+                // Tags - empty for now (can be expanded later)
+                tags: [],
+                // Get actual count of students from inscriptions
+                formandos: inscricoes.length,
+                // Default status is active
+                status: 'Ativo' as const,
+                // Add list of students enrolled in this course
+                estudantes: inscricoes.map((insc) => ({
+                    id: insc.formando.id,
+                    nome: insc.formando.user.nome,
+                    email: insc.formando.user.email,
+                    dataInscricao: insc.dataInicio,
+                })),
+            };
+        })
+    );
+
+    return modulosComFormandos;
 }
