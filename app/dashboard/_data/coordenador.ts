@@ -168,6 +168,7 @@ export async function getCursos(): Promise<CursoComDetalhes[]> {
 export type FormadorComDetalhes = {
   id: string;
   especialidade: string | null;
+  competencias?: string | null;
   userId: string;
   modulosLecionados: Array<{ modulo: { nome: string } }>;
   user: { id: string; nome: string; email: string };
@@ -182,7 +183,7 @@ export async function getFormadores(): Promise<FormadorComDetalhes[]> {
       },
     },
     orderBy: { user: { nome: "asc" } },
-  });
+  }) as FormadorComDetalhes[];
 }
 
 // ─── Módulos ──────────────────────────────────────────────────────────────────

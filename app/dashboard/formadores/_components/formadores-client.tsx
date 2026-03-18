@@ -31,12 +31,17 @@ interface FormadorUI {
 }
 
 function toFormadorUI(f: FormadorComDetalhes): FormadorUI {
+  const especialidadeTag = f.especialidade ? [f.especialidade] : [];
+  const competenciasTags = f.competencias 
+    ? f.competencias.split(",").map(c => c.trim()).filter(c => c !== "")
+    : [];
+
   return {
     id: f.id,
     nome: f.user.nome,
     email: f.user.email,
     avatar: undefined,
-    tags: f.especialidade ? [f.especialidade] : [],
+    tags: [...especialidadeTag, ...competenciasTags],
     status: "aceite",
     favorito: false,
   };
@@ -265,7 +270,12 @@ function FormadorCard({
           {formador.tags.map((tag) => (
             <span
               key={tag}
-              className="flex items-center gap-1 rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600"
+              className={cn(
+                "flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors",
+                tag === formador.tags[0] 
+                  ? "border-indigo-100 bg-indigo-50 text-indigo-600 font-bold" // Destaque para especialidade (primeira tag)
+                  : "border-gray-100 bg-gray-50 text-gray-500 hover:bg-gray-100" // Estilo mais discreto para competências
+              )}
             >
               {tag}
             </span>
@@ -360,11 +370,20 @@ export function FormadoresClient({
   }
 
   async function handleDelete(id: string) {
-    const res = await fetch(`/api/formadores/${id}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
-      setFormadores((prev) => prev.filter((f) => f.id !== id));
+    try {
+      const res = await fetch(`/api/formadores/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setFormadores((prev) => prev.filter((f) => f.id !== id));
+      } else {
+        alert(data.error || "Erro ao eliminar formador.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro de rede ao tentar eliminar o formador.");
     }
   }
 
