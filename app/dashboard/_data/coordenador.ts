@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
+// ─── Stats ────────────────────────────────────────────────────────────────────
+
 export async function getCoordenadorStats() {
   const [cursos, formadores, formandos] = await Promise.all([
     prisma.curso.count({ where: { status: "ATIVO" } }),
@@ -9,6 +11,126 @@ export async function getCoordenadorStats() {
 
   return { cursos, formadores, formandos };
 }
+
+// ─── Próximas Sessões ─────────────────────────────────────────────────────────
+
+export async function getProximasSessoes() {
+  const agora = new Date();
+
+  const aulas = await prisma.aula.findMany({
+    where: { dataHora: { gte: agora } },
+    orderBy: { dataHora: "asc" },
+    take: 4,
+    include: {
+      modulo: { include: { curso: true } },
+      formador: { include: { user: true } },
+    },
+  });
+
+  return aulas.map((aula) => ({
+    id: aula.id,
+    titulo: `${aula.modulo.curso.nome} · ${aula.titulo}`,
+    formador: aula.formador.user.nome,
+    dataHora: aula.dataHora,
+    duracao: aula.duracao,
+  }));
+}
+
+// ─── Formandos em Risco ───────────────────────────────────────────────────────
+
+type FormandoRiscoResult = {
+  id: string;
+  nome: string;
+  curso: string;
+  negativas: number;
+};
+
+export async function getFormandosEmRisco(): Promise<FormandoRiscoResult[]> {
+  // Busca todas as avaliações negativas (nota < 10) agrupadas por formando
+  const avaliacoesNegativas = await prisma.avaliacao.findMany({
+    where: { nota: { lt: 10 } },
+    select: { formandoId: true, moduloId: true },
+  });
+
+  if (avaliacoesNegativas.length === 0) return [];
+
+  // Conta negativas por formando
+  const contagemPorFormando = avaliacoesNegativas.reduce<
+    Record<string, Set<string>>
+  >((acc, av) => {
+    if (!acc[av.formandoId]) acc[av.formandoId] = new Set();
+    acc[av.formandoId].add(av.moduloId);
+    return acc;
+  }, {});
+
+  // Ordena por número de módulos com negativa (desc) e pega os top 5
+  const formandoIdsOrdenados = Object.entries(contagemPorFormando)
+    .sort(([, a], [, b]) => b.size - a.size)
+    .slice(0, 5)
+    .map(([id]) => id);
+
+  const formandos = await prisma.formando.findMany({
+    where: { id: { in: formandoIdsOrdenados } },
+    include: {
+      user: { select: { nome: true } },
+      inscricoes: { include: { curso: { select: { nome: true } } }, take: 1 },
+    },
+  });
+
+  return formandoIdsOrdenados
+    .map((id) => {
+      const f = formandos.find((x) => x.id === id);
+      if (!f) return null;
+      return {
+        id: f.id,
+        nome: f.user.nome,
+        curso: f.inscricoes[0]?.curso.nome ?? "—",
+        negativas: contagemPorFormando[id].size,
+      };
+    })
+    .filter(Boolean) as FormandoRiscoResult[];
+}
+
+// ─── Documentos em Falta / Expirados ─────────────────────────────────────────
+
+export type DocumentoEmFalta = {
+  id: string;
+  formadorId: string;
+  formadorNome: string;
+  tipo: string;
+  status: "EM_FALTA" | "EXPIRADO" | "A_EXPIRAR";
+  dataExpiracao: Date | null;
+};
+
+export async function getDocumentosEmFalta(): Promise<DocumentoEmFalta[]> {
+  const docs = await prisma.documentoFormador.findMany({
+    where: {
+      status: { in: ["EM_FALTA", "EXPIRADO", "A_EXPIRAR"] },
+    },
+    include: {
+      Formador: {
+        include: { user: { select: { nome: true } } },
+      },
+    },
+    orderBy: [
+      // EXPIRADO primeiro, depois A_EXPIRAR, depois EM_FALTA
+      { status: "asc" },
+      { dataExpiracao: "asc" },
+    ],
+    take: 6,
+  });
+
+  return docs.map((d) => ({
+    id: d.id,
+    formadorId: d.formadorId,
+    formadorNome: d.Formador.user.nome,
+    tipo: d.tipo,
+    status: d.status as "EM_FALTA" | "EXPIRADO" | "A_EXPIRAR",
+    dataExpiracao: d.dataExpiracao,
+  }));
+}
+
+// ─── Cursos ───────────────────────────────────────────────────────────────────
 
 export type CursoComDetalhes = {
   id: string;
@@ -31,10 +153,7 @@ export type CursoComDetalhes = {
 
 export async function getCursos(): Promise<CursoComDetalhes[]> {
   const cursos = await prisma.curso.findMany({
-    include: {
-      modulos: true,
-      inscricoes: true,
-    },
+    include: { modulos: true, inscricoes: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -44,91 +163,20 @@ export async function getCursos(): Promise<CursoComDetalhes[]> {
   }));
 }
 
-export async function getProximasSessoes() {
-  // usar início do dia para incluir sessões de hoje mesmo que a hora já tenha passado
-  const inicioDoDia = new Date();
-  inicioDoDia.setHours(0, 0, 0, 0);
-
-  const aulas = await prisma.aula.findMany({
-    where: { dataHora: { gte: inicioDoDia } },
-    orderBy: { dataHora: "asc" },
-    take: 4,
-    include: {
-      modulo: { include: { curso: true } },
-      formador: { include: { user: true } },
-    },
-  });
-
-  return aulas.map((aula: (typeof aulas)[0]) => ({
-    id: aula.id,
-    titulo: `${aula.modulo.curso.nome} · ${aula.titulo}`,
-    formador: aula.formador.user.nome,
-    dataHora: aula.dataHora,
-    duracao: aula.duracao,
-  }));
-}
-
-type FormandoRiscoResult = {
-  id: string;
-  nome: string;
-  curso: string;
-  negativas: number;
-};
-
-export async function getFormandosEmRisco(): Promise<FormandoRiscoResult[]> {
-  const avaliacoes = await prisma.avaliacao.groupBy({
-    by: ["formandoId", "moduloId"],
-    _avg: { nota: true },
-    having: { nota: { _avg: { lt: 10 } } },
-  });
-
-  const formandoIds = [
-    ...new Set(avaliacoes.map((a: (typeof avaliacoes)[0]) => a.formandoId)),
-  ];
-
-  if (formandoIds.length === 0) return [];
-
-  const formandos = await prisma.formando.findMany({
-    where: { id: { in: formandoIds } },
-    include: {
-      user: true,
-      inscricoes: { include: { curso: true } },
-    },
-    take: 5,
-  });
-
-  return formandos.map((f: (typeof formandos)[0]) => ({
-    id: f.id,
-    nome: f.user.nome,
-    curso: f.inscricoes[0]?.curso.nome ?? "—",
-    negativas: avaliacoes.filter(
-      (a: (typeof avaliacoes)[0]) => a.formandoId === f.id,
-    ).length,
-  }));
-}
-
-// ─── Lista de Formadores (Coordenador) ────────────────────────────────────────
+// ─── Formadores ───────────────────────────────────────────────────────────────
 
 export type FormadorComDetalhes = {
   id: string;
   especialidade: string | null;
   userId: string;
-  modulosLecionados: Array<{
-    modulo: { nome: string };
-  }>;
-  user: {
-    id: string;
-    nome: string;
-    email: string;
-  };
+  modulosLecionados: Array<{ modulo: { nome: string } }>;
+  user: { id: string; nome: string; email: string };
 };
 
 export async function getFormadores(): Promise<FormadorComDetalhes[]> {
   return await prisma.formador.findMany({
     include: {
-      user: {
-        select: { id: true, nome: true, email: true },
-      },
+      user: { select: { id: true, nome: true, email: true } },
       modulosLecionados: {
         include: { modulo: { select: { nome: true } } },
       },
@@ -137,14 +185,7 @@ export async function getFormadores(): Promise<FormadorComDetalhes[]> {
   });
 }
 
-// ─── Tipos exportados para usar nos componentes ───────────────────────────────
-export type ProximaSessao = Awaited<
-  ReturnType<typeof getProximasSessoes>
->[number];
-export type FormandoEmRisco = Awaited<
-  ReturnType<typeof getFormandosEmRisco>
->[number];
-export type FormadorItem = FormadorComDetalhes;
+// ─── Módulos ──────────────────────────────────────────────────────────────────
 
 export type ModuloComDetalhes = {
   id: string;
@@ -153,46 +194,33 @@ export type ModuloComDetalhes = {
   ordem: number;
   cargaHoraria: number;
   cursoId: string;
-  curso?: {
-    id: string;
-    nome: string;
-  };
+  curso?: { id: string; nome: string };
   formadores?: Array<{
     id: string;
     especialidade: string | null;
-    user: {
-      id: string;
-      nome: string;
-    };
+    user: { id: string; nome: string };
   }>;
 };
 
 export async function getModulos(): Promise<ModuloComDetalhes[]> {
-  return await prisma.modulo
-    .findMany({
-      include: {
-        curso: {
-          select: { id: true, nome: true },
-        },
-        formadores: {
-          include: {
-            formador: {
-              include: { user: true },
-            },
-          },
-        },
+  const modulos = await prisma.modulo.findMany({
+    include: {
+      curso: { select: { id: true, nome: true } },
+      formadores: {
+        include: { formador: { include: { user: true } } },
       },
-      orderBy: { ordem: "asc" },
-    })
-    .then((modulos) =>
-      modulos.map((mod) => ({
-        ...mod,
-        formadores: mod.formadores.map((fm) => fm.formador),
-      })),
-    );
+    },
+    orderBy: { ordem: "asc" },
+  });
+
+  return modulos.map((mod) => ({
+    ...mod,
+    formadores: mod.formadores.map((fm) => fm.formador),
+  }));
 }
 
-// ─── FORMANDOS ────────────────────────────────────────────────────────────
+// ─── Formandos ────────────────────────────────────────────────────────────────
+
 export type FormandoComDetalhes = {
   id: string;
   nome: string;
@@ -209,12 +237,8 @@ export type FormandoComDetalhes = {
 export async function getFormandos(): Promise<FormandoComDetalhes[]> {
   const formandos = await prisma.formando.findMany({
     include: {
-      user: {
-        select: { id: true, nome: true, email: true },
-      },
-      inscricoes: {
-        include: { curso: true },
-      },
+      user: { select: { id: true, nome: true, email: true } },
+      inscricoes: { include: { curso: true } },
       avaliacoes: true,
     },
     orderBy: { user: { nome: "asc" } },
@@ -222,7 +246,6 @@ export async function getFormandos(): Promise<FormandoComDetalhes[]> {
 
   return formandos.map((f) => {
     const negativos = f.avaliacoes.filter((a) => a.nota < 10).length;
-
     const progresso =
       f.avaliacoes.length > 0
         ? Math.round(
@@ -252,7 +275,8 @@ export async function getFormandos(): Promise<FormandoComDetalhes[]> {
   });
 }
 
-// ─── DETALHES DO FORMANDO ────────────────────────────────────────────────────
+// ─── Perfil do Formando ───────────────────────────────────────────────────────
+
 export type FormandoPerfil = {
   id: string;
   nome: string;
@@ -274,14 +298,7 @@ export type FormandoPerfil = {
   avaliacoes: Array<{
     id: string;
     nota: number;
-    modulo: {
-      id: string;
-      nome: string;
-      curso: {
-        id: string;
-        nome: string;
-      };
-    };
+    modulo: { id: string; nome: string; curso: { id: string; nome: string } };
   }>;
 };
 
@@ -291,33 +308,19 @@ export async function getFormandoPerfil(
   const formando = await prisma.formando.findUnique({
     where: { id: formandoId },
     include: {
-      user: {
-        select: { id: true, nome: true, email: true },
-      },
+      user: { select: { id: true, nome: true, email: true } },
       inscricoes: {
         include: {
           curso: {
             include: {
-              modulos: {
-                select: {
-                  id: true,
-                  nome: true,
-                  cargaHoraria: true,
-                },
-              },
+              modulos: { select: { id: true, nome: true, cargaHoraria: true } },
             },
           },
         },
       },
       avaliacoes: {
         include: {
-          modulo: {
-            include: {
-              curso: {
-                select: { id: true, nome: true },
-              },
-            },
-          },
+          modulo: { include: { curso: { select: { id: true, nome: true } } } },
         },
       },
     },
@@ -351,3 +354,12 @@ export async function getFormandoPerfil(
     avaliacoes: formando.avaliacoes,
   };
 }
+
+// ─── Tipos exportados ─────────────────────────────────────────────────────────
+export type ProximaSessao = Awaited<
+  ReturnType<typeof getProximasSessoes>
+>[number];
+export type FormandoEmRisco = Awaited<
+  ReturnType<typeof getFormandosEmRisco>
+>[number];
+export type FormadorItem = FormadorComDetalhes;
