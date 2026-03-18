@@ -112,6 +112,7 @@ export async function getFormandosEmRisco(): Promise<FormandoRiscoResult[]> {
 export type FormadorComDetalhes = {
   id: string;
   especialidade: string | null;
+  competencias?: string | null;
   userId: string;
   modulosLecionados: Array<{
     modulo: { nome: string };
@@ -134,7 +135,7 @@ export async function getFormadores(): Promise<FormadorComDetalhes[]> {
       },
     },
     orderBy: { user: { nome: "asc" } },
-  });
+  }) as FormadorComDetalhes[];
 }
 
 // ─── Tipos exportados para usar nos componentes ───────────────────────────────
