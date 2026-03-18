@@ -1,12 +1,13 @@
 import { BookOpen, Clock, Mail, AlertTriangle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { getFormadorStats, getProximasSessoesFormador, SessaoFormador } from '@/app/dashboard/_data/formador'
+import { getFormadorStats, getProximasSessoesFormador, getConvitesPendentesFormador, SessaoFormador, ConvitePendente } from '@/app/dashboard/_data/formador'
 
 export async function FormadorDashboard({ userName, userId }: { userName: string; userId: string }) {
-  const [stats, sessoes] = await Promise.all([
+  const [stats, sessoes, convites] = await Promise.all([
     getFormadorStats(userId),
     getProximasSessoesFormador(userId),
+    getConvitesPendentesFormador(userId),
   ])
 
   const hour = new Date().getHours()
@@ -15,8 +16,7 @@ export async function FormadorDashboard({ userName, userId }: { userName: string
   const kpis = [
     { label: 'MÓDULOS ATIVOS', value: stats.modulosAtivos, icon: BookOpen, bg: 'bg-purple-50', iconBg: 'bg-purple-100', iconColor: 'text-purple-500' },
     { label: 'PRÓXIMAS SESSÕES', value: stats.proximasSessoes, icon: Clock, bg: 'bg-blue-50', iconBg: 'bg-blue-100', iconColor: 'text-blue-500' },
-    { label: 'CONVITES PENDENTES', value: stats.convitesPendentes, icon: Mail, bg: 'bg-amber-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-500' },
-    { label: 'DOCS EM FALTA', value: 0, icon: AlertTriangle, bg: 'bg-red-50', iconBg: 'bg-red-100', iconColor: 'text-red-400' },
+    { label: 'CONVITES PENDENTES', value: stats.convitesPendentes, icon: Mail, bg: 'bg-amber-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-500' }
   ]
 
   return (
@@ -94,8 +94,26 @@ export async function FormadorDashboard({ userName, userId }: { userName: string
               Ver todos <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="flex h-24 items-center justify-center">
-            <p className="text-sm text-gray-400">Sem convites pendentes</p>
+          <div className="flex flex-col gap-3">
+            {convites.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">Sem convites pendentes</p>
+            )}
+            {convites.map((c: ConvitePendente) => {
+              const data = new Date(c.dataEnvio)
+              return (
+                <div key={c.id} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold text-gray-800">{c.descricao}</span>
+                    <span className="text-xs text-gray-400">
+                      {data.toLocaleDateString('pt-PT')}
+                    </span>
+                  </div>
+                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                    Pendente
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

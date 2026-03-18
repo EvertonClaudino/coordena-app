@@ -61,3 +61,52 @@ export async function getProximasSessoesFormador(userId: string) {
 export type SessaoFormador = Awaited<
     ReturnType<typeof getProximasSessoesFormador>
 >[number];
+
+export async function getConvitesPendentesFormador(userId: string) {
+    const formador = await prisma.formador.findUnique({
+        where: { userId },
+    });
+
+    if (!formador) return [];
+
+    const convites = await prisma.convite.findMany({
+        where: {
+            formadorId: formador.id,
+            status: 'PENDENTE',
+        },
+        orderBy: { dataEnvio: "desc" },
+    });
+
+    return convites.map((convite) => ({
+        id: convite.id,
+        descricao: convite.descricao || 'Sem descrição',
+        dataEnvio: convite.dataEnvio,
+    }));
+}
+
+export type ConvitePendente = Awaited<
+    ReturnType<typeof getConvitesPendentesFormador>
+>[number];
+
+export async function getFormadorPerfil(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            formador: true,
+        },
+    });
+
+    if (!user?.formador) return null;
+
+    return {
+        nome: user.nome || '',
+        email: user.email || '',
+        especialidade: user.formador.especialidade || '',
+        competencias: user.formador.competencias || '',
+        linkedin: user.formador.linkedin || '',
+        github: user.formador.github || '',
+        idioma: user.formador.idioma || '',
+        nacionalidade: user.formador.nacionalidade || '',
+        userId: user.id,
+    };
+}
