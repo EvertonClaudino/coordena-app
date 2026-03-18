@@ -276,3 +276,32 @@ export async function getModulosComAlunos(userId: string) {
 
     return modulosComDetalhes;
 }
+
+export async function getAulasFormador(userId: string) {
+    const formador = await prisma.formador.findUnique({
+        where: { userId },
+        include: {
+            user: true,
+            aulas: {
+                include: {
+                    modulo: true,
+                },
+                orderBy: { dataHora: "asc" },
+            },
+        },
+    });
+
+    if (!formador) return [];
+
+    return formador.aulas.map((aula) => ({
+        id: aula.id,
+        titulo: aula.titulo,
+        formador: formador.user.nome,
+        data: aula.dataHora.toISOString().split("T")[0],
+        horaInicio: `${String(aula.dataHora.getHours()).padStart(2, "0")}:${String(aula.dataHora.getMinutes()).padStart(2, "0")}`,
+        duracao: `${aula.duracao}h`,
+        ufcd: aula.modulo.nome,
+        cor: "bg-indigo-100 text-indigo-700 border-indigo-200",
+        moduloId: aula.modulo.id,
+    }));
+}
