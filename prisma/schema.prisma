@@ -175,27 +175,6 @@ model Documento {
   numero        String
   dataEmissao   DateTime
   dataExpiracao DateTime?
-<<<<<<< HEAD
-  status      StatusDocumento @default(VALIDO)
-  formandoId  String
-  formando    Formando       @relation(fields: [formandoId], references: [id])
-}
-
-// ─── DOCUMENTO FORMADOR ──────────────────────────
-model DocumentoFormador {
-  id          String         @id @default(uuid())
-  tipo        String
-  numero      String?
-  dataEmissao DateTime?
-  dataExpiracao DateTime?
-  status      StatusDocumento @default(EM_FALTA)
-  formadorId  String
-  formador    Formador       @relation(fields: [formadorId], references: [id])
-  createdAt   DateTime       @default(now())
-}
-
-// ─── CONVITE PARA FORMADOR ──────────────────────
-=======
   status        StatusDocumento @default(VALIDO)
   formandoId    String
   formando      Formando        @relation(fields: [formandoId], references: [id])
@@ -254,25 +233,8 @@ enum StatusDocumento {
   EM_FALTA
 }
 
->>>>>>> 13f7afd11ba75dc7b21186a2be41a47bf3b4c6bd
 enum StatusConvite {
   PENDENTE
   ACEITE
   RECUSADO
-<<<<<<< HEAD
-}
-
-model Convite {
-  id         String       @id @default(uuid())
-  formadorId String
-  cursoId    String?
-  moduloId   String?
-  status     StatusConvite @default(PENDENTE)
-  descricao  String?
-  dataEnvio  DateTime     @default(now())
-  dataResposta DateTime?
-  formador   Formador     @relation(fields: [formadorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime     @default(now())
-=======
->>>>>>> 13f7afd11ba75dc7b21186a2be41a47bf3b4c6bd
 }

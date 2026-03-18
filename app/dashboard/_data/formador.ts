@@ -11,7 +11,7 @@ export async function getFormadorStats(userId: string) {
 
     const agora = new Date();
 
-    const [proximasSessoes, convitesPendentes, docsEmFalta] = await Promise.all([
+    const [proximasSessoes, convitesPendentes] = await Promise.all([
         prisma.aula.count({
             where: {
                 formadorId: formador.id,
@@ -99,7 +99,7 @@ export async function getFormadorPerfil(userId: string) {
     if (!user?.formador) return null;
 
     return {
-        nome: user.name || '',
+        nome: user.nome || '',
         email: user.email || '',
         especialidade: user.formador.especialidade || '',
         competencias: user.formador.competencias || '',
