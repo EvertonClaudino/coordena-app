@@ -2,16 +2,10 @@
 
 import { useState, useEffect } from "react";
 import {
-  ChevronLeft, ChevronRight, Clock, Plus, Loader, Check, X,
+  ChevronLeft, ChevronRight, Clock, Loader, Check, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { obterAulasFormador, obterAlunosComPresenca, guardarPresenca } from "../actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,6 +17,7 @@ interface Sessao {
   data: string; // "YYYY-MM-DD"
   horaInicio: string;
   duracao: string;
+  durationMinutes?: number; // duração em minutos
   ufcd: string;
   cor: string;
 }
@@ -52,18 +47,17 @@ function toISO(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function podeMarcarPresenca(horaInicio: string, duracao: string): { pode: boolean; motivo?: string } {
+function podeMarcarPresenca(horaInicio: string, durationMinutes?: number): { pode: boolean; motivo?: string } {
   const agora = new Date();
-  const horaAtual = `${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
   
   const [hInicio, minInicio] = horaInicio.split(":").map(Number);
-  const durNum = parseInt(duracao);
+  const durMinutos = durationMinutes || 0;
   
   const dataInicio = new Date();
   dataInicio.setHours(hInicio, minInicio, 0);
   
   const dataFim = new Date(dataInicio);
-  dataFim.setHours(dataFim.getHours() + durNum);
+  dataFim.setMinutes(dataFim.getMinutes() + durMinutos);
   
   if (agora < dataInicio) {
     return { pode: false, motivo: `Aula começa às ${horaInicio}` };
@@ -73,54 +67,6 @@ function podeMarcarPresenca(horaInicio: string, duracao: string): { pode: boolea
   }
   
   return { pode: true };
-}
-
-// ─── Nova Sessão Dialog ───────────────────────────────────────────────────────
-
-function NovaSessaoDialog() {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-          <Plus className="h-4 w-4" /> Nova Sessão
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Criar Nova Sessão</DialogTitle>
-          <DialogDescription>Preenche os dados da sessão de formação.</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-1.5">
-            <Label>Título</Label>
-            <Input placeholder="Ex: Design Gráfico - Sessão 14" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>Código UFCD</Label>
-            <Input placeholder="Ex: UFCD-0145" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Data</Label>
-              <Input type="date" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Hora de início</Label>
-              <Input type="time" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>Duração (horas)</Label>
-            <Input type="number" placeholder="Ex: 3" />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline">Cancelar</Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">Criar Sessão</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -292,7 +238,6 @@ export default function FormadorCalendarioPage() {
               <h1 className="text-[26px] font-bold text-gray-900">Calendário</h1>
               <p className="mt-0.5 text-sm text-gray-500">{sessoesDoMes.length} sessões este mês</p>
             </div>
-            <NovaSessaoDialog />
           </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_380px]">
@@ -588,7 +533,7 @@ export default function FormadorCalendarioPage() {
           ) : (
             <div className="flex flex-col gap-3">
               {sessoesHoje.map((aula) => {
-                const podeMarcar = podeMarcarPresenca(aula.horaInicio, aula.duracao);
+                const podeMarcar = podeMarcarPresenca(aula.horaInicio, aula.durationMinutes);
 
                 return (
                   <button

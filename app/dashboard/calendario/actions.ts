@@ -29,16 +29,26 @@ export async function obterAulasFormador() {
 
     return {
       success: true,
-      aulas: formador.aulas.map((aula) => ({
-        id: aula.id,
-        titulo: aula.titulo,
-        formador: formador.user.nome,
-        data: aula.dataHora.toISOString().split('T')[0],
-        horaInicio: `${String(aula.dataHora.getHours()).padStart(2, '0')}:${String(aula.dataHora.getMinutes()).padStart(2, '0')}`,
-        duracao: `${aula.duracao}h`,
-        ufcd: aula.modulo.nome,
-        cor: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-      })),
+      aulas: formador.aulas.map((aula) => {
+        const horas = Math.floor(aula.duracao / 60);
+        const minutos = aula.duracao % 60;
+        let durationStr = '';
+        if (horas > 0) durationStr += `${horas}h`;
+        if (minutos > 0) durationStr += `${minutos}m`;
+        if (!durationStr) durationStr = '0m';
+        
+        return {
+          id: aula.id,
+          titulo: aula.titulo,
+          formador: formador.user.nome,
+          data: aula.dataHora.toISOString().split('T')[0],
+          horaInicio: `${String(aula.dataHora.getHours()).padStart(2, '0')}:${String(aula.dataHora.getMinutes()).padStart(2, '0')}`,
+          duracao: durationStr,
+          durationMinutes: aula.duracao,
+          ufcd: aula.modulo.nome,
+          cor: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+        };
+      }),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
