@@ -1,6 +1,23 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
+// ─── GET /api/modulos ─────────────────────────────────────────────────────────
+
+export async function GET() {
+  try {
+    const modulos = await prisma.modulo.findMany({
+      orderBy: { ordem: 'asc' },
+      include: { curso: { select: { id: true, nome: true } } },
+    })
+    return Response.json(modulos)
+  } catch (error) {
+    console.error('[GET /api/modulos]', error)
+    return Response.json({ error: 'Erro ao carregar módulos' }, { status: 500 })
+  }
+}
+
+// ─── POST /api/modulos ────────────────────────────────────────────────────────
+
 export async function POST(req: Request) {
   try {
     const { nome, descricao, ordem, cargaHoraria, cursoId, formadorId } = await req.json()

@@ -45,10 +45,12 @@ export async function getCursos(): Promise<CursoComDetalhes[]> {
 }
 
 export async function getProximasSessoes() {
-  const agora = new Date();
+  // usar início do dia para incluir sessões de hoje mesmo que a hora já tenha passado
+  const inicioDoDia = new Date();
+  inicioDoDia.setHours(0, 0, 0, 0);
 
   const aulas = await prisma.aula.findMany({
-    where: { dataHora: { gte: agora } },
+    where: { dataHora: { gte: inicioDoDia } },
     orderBy: { dataHora: "asc" },
     take: 4,
     include: {
