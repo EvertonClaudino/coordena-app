@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   Plus, Search, Star, Mail, Phone, GraduationCap,
-  MoreVertical, Eye, Pencil, Trash2, AlertTriangle,
+  MoreVertical, Eye, Pencil, Trash2, AlertTriangle, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -58,6 +58,7 @@ function AdicionarFormandoDialog({ cursos }: AdicionarFormandoDialogProps) {
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [telefone, setTelefone] = useState("");
   const [cursoId, setCursoId] = useState(cursos[0]?.id || "");
   const [erro, setErro] = useState<string | null>(null);
@@ -72,6 +73,7 @@ function AdicionarFormandoDialog({ cursos }: AdicionarFormandoDialogProps) {
       const resultado = await adicionarFormando({
         nome,
         email,
+        senha,
         telefone: telefone || undefined,
         cursoId,
       });
@@ -80,6 +82,7 @@ function AdicionarFormandoDialog({ cursos }: AdicionarFormandoDialogProps) {
         // Limpar formulário e fechar diálogo
         setNome("");
         setEmail("");
+        setSenha("");
         setTelefone("");
         setCursoId(cursos[0]?.id || "");
         setOpen(false);
@@ -137,6 +140,16 @@ function AdicionarFormandoDialog({ cursos }: AdicionarFormandoDialogProps) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
+            <Label>Senha (para login)</Label>
+            <Input
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
             <Label>Curso</Label>
             <select
               value={cursoId}
@@ -187,9 +200,11 @@ function AdicionarFormandoDialog({ cursos }: AdicionarFormandoDialogProps) {
 function FormandoCard({
   formando,
   onToggleFavorito,
+  onExcluir,
 }: {
   formando: FormandoUI;
   onToggleFavorito: (id: string) => void;
+  onExcluir: () => void;
 }) {
   const [perfilAberto, setPerfilAberto] = useState(false);
   const initials = formando.nome.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
@@ -227,7 +242,12 @@ function FormandoCard({
                     </DropdownMenuItem>
                     <DropdownMenuItem className="gap-2 text-sm"><Pencil className="h-3.5 w-3.5" /> Editar</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="gap-2 text-sm text-red-500 focus:text-red-500"><Trash2 className="h-3.5 w-3.5" /> Remover</DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="gap-2 text-sm text-red-500 focus:text-red-500 cursor-pointer"
+                      onClick={onExcluir}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Remover
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -285,11 +305,73 @@ function FormandoCard({
   );
 }
 
+// ─── Excluir Formando Dialog ────────────────────────────────────────────────
+
+function ExcluirFormandoDialog({ formando, onClose, onConfirm }: { formando: FormandoUI; onClose: () => void; onConfirm: () => Promise<void> }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleExcluir = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await onConfirm();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir formando");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Excluir Formando
+          </DialogTitle>
+          <DialogDescription>
+            Tens a certeza que pretendes excluir o formando <span className="font-bold text-gray-900">"{formando.nome}"</span>?
+            Esta ação apagará **permanentemente** a sua conta e todos os seus registos académicos (presenças, avaliações, etc.).
+          </DialogDescription>
+        </DialogHeader>
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={onClose} disabled={loading} className="rounded-xl">
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleExcluir}
+            disabled={loading}
+            className="rounded-xl bg-red-600 hover:bg-red-700 font-semibold"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                A excluir...
+              </>
+            ) : "Excluir Formando"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function FormandosContent({ data, cursos }: { data: FormandoComDetalhes[]; cursos: CursoComDetalhes[] }) {
   const [search, setSearch] = useState("");
   const [filtro, setFiltro] = useState<FormandoStatus | "todos" | "risco">("todos");
+  const [formandoParaExcluir, setFormandoParaExcluir] = useState<FormandoUI | null>(null);
   const [formandos, setFormandos] = useState<FormandoUI[]>(
     data.map(f => ({ ...f, status: f.status as FormandoStatus, favorito: false }))
   );
@@ -316,6 +398,22 @@ export function FormandosContent({ data, cursos }: { data: FormandoComDetalhes[]
       f.status === filtro;
     return matchSearch && matchFiltro;
   });
+
+  const handleConfirmExcluir = async () => {
+    if (!formandoParaExcluir) return;
+
+    const response = await fetch(`/api/formandos/${formandoParaExcluir.id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.erro || "Erro ao excluir formando");
+    }
+
+    // Atualizar estado local
+    setFormandos(prev => prev.filter(f => f.id !== formandoParaExcluir.id));
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -360,7 +458,12 @@ export function FormandosContent({ data, cursos }: { data: FormandoComDetalhes[]
       {filtrados.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtrados.map((formando) => (
-            <FormandoCard key={formando.id} formando={formando} onToggleFavorito={toggleFavorito} />
+            <FormandoCard 
+              key={formando.id} 
+              formando={formando} 
+              onToggleFavorito={toggleFavorito} 
+              onExcluir={() => setFormandoParaExcluir(formando)}
+            />
           ))}
         </div>
       ) : (
@@ -369,6 +472,13 @@ export function FormandosContent({ data, cursos }: { data: FormandoComDetalhes[]
           <p className="text-sm font-medium text-gray-500">Nenhum formando encontrado</p>
           <p className="text-xs text-gray-400 mt-1">Tenta ajustar a pesquisa ou os filtros</p>
         </div>
+      )}
+      {formandoParaExcluir && (
+        <ExcluirFormandoDialog 
+          formando={formandoParaExcluir} 
+          onClose={() => setFormandoParaExcluir(null)} 
+          onConfirm={handleConfirmExcluir} 
+        />
       )}
     </div>
   );
