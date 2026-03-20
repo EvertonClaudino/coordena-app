@@ -311,7 +311,12 @@ export async function getMeusTrabalhos(userId: string) {
                         orderBy: { ordem: 'asc' },
                         include: {
                             templatesAvaliacao: {
-                                include: { items: { orderBy: { ordem: 'asc' }, include: { submissoes: { where: { formandoId: formando.id } } } } }
+                                include: {
+                                    items: {
+                                        orderBy: { ordem: 'asc' },
+                                        include: { submissoes: { where: { formandoId: formando.id } } }
+                                    }
+                                }
                             }
                         }
                     }
@@ -331,9 +336,14 @@ export async function getMeusTrabalhos(userId: string) {
                     let status: 'PENDENTE' | 'ENTREGUE' | 'EM_FALTA' | 'ATRASADO' = 'PENDENTE'
 
                     if (submissao) {
-                        if (item.dataLimite && new Date(submissao.dataEntrega) > new Date(item.dataLimite)) status = 'ATRASADO'
-                        else status = 'ENTREGUE'
-                    } else if (item.dataLimite && new Date(item.dataLimite) < hoje) status = 'EM_FALTA'
+                        if (item.dataLimite && submissao.dataEntrega && new Date(submissao.dataEntrega) > new Date(item.dataLimite)) {
+                            status = 'ATRASADO'
+                        } else {
+                            status = 'ENTREGUE'
+                        }
+                    } else if (item.dataLimite && new Date(item.dataLimite) < hoje) {
+                        status = 'EM_FALTA'
+                    }
 
                     return {
                         moduloId: modulo.id,
@@ -357,6 +367,7 @@ export async function getMeusTrabalhos(userId: string) {
 
 // ------------------- CONVITES & REVIEWS -------------------
 export async function getMeusConvites(userId: string) { return [] }
+
 export async function getModulosParaReview(userId: string) {
     const formando = await prisma.formando.findUnique({
         where: { userId },
