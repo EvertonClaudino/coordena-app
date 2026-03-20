@@ -74,6 +74,26 @@ model Formador {
   presencas         Presenca[]
   /// Novos: Templates de avaliação definidos por este formador
   templatesAvaliacao TemplateAvaliacao[]
+  /// Disponibilidades do formador
+  disponibilidades  Disponibilidade[]
+}
+
+/// Disponibilidade: Horários em que o formador está disponível
+/// Estrutura: dia da semana + hora:minuto (30 em 30 min)
+model Disponibilidade {
+  id        String   @id @default(uuid())
+  formadorId String
+  diaSemana String   /// "Segunda", "Terça", "Quarta", "Quinta", "Sexta"
+  hora      Int      /// 9-17
+  minuto    Int      /// 0 ou 30
+  disponivel Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  formador  Formador @relation(fields: [formadorId], references: [id], onDelete: Cascade)
+  
+  /// Garantir apenas um slot por (formadorId, diaSemana, hora, minuto)
+  @@unique([formadorId, diaSemana, hora, minuto])
 }
 
 model Formando {
@@ -153,6 +173,7 @@ model Aula {
 }
 
 model Presenca {
+<<<<<<< HEAD
   id                 String         @id @default(uuid())
   status             StatusPresenca @default(AUSENTE)
   justificativa      String?        /// Nota final ou aprovação do coordenador
@@ -164,6 +185,19 @@ model Presenca {
   aula               Aula           @relation(fields: [aulaId], references: [id])
   formador           Formador       @relation(fields: [formadorId], references: [id])
   formando           Formando       @relation(fields: [formandoId], references: [id])
+=======
+  id                  String         @id @default(uuid())
+  status              StatusPresenca @default(AUSENTE)
+  justificativa       String?
+  comentarioFormando  String?
+  documentoUrl        String?
+  aulaId              String
+  formandoId          String
+  formadorId          String
+  aula                Aula           @relation(fields: [aulaId], references: [id])
+  formador            Formador       @relation(fields: [formadorId], references: [id])
+  formando            Formando       @relation(fields: [formandoId], references: [id])
+>>>>>>> 56238e2b0e5f26a79e4271bffc3fe9ccc15ee8e5
 
   @@unique([aulaId, formandoId])
 }
@@ -197,7 +231,11 @@ model Documento {
 }
 
 model Convite {
+<<<<<<< HEAD
   id           String        @id @default(uuid())
+=======
+  id           String        @id
+>>>>>>> 56238e2b0e5f26a79e4271bffc3fe9ccc15ee8e5
   formadorId   String?
   formandoId   String?
   cursoId      String?
@@ -207,11 +245,15 @@ model Convite {
   dataEnvio    DateTime      @default(now())
   dataResposta DateTime?
   createdAt    DateTime      @default(now())
+<<<<<<< HEAD
   
   Formador     Formador?     @relation(fields: [formadorId], references: [id], onDelete: Cascade)
   Formando     Formando?     @relation(fields: [formandoId], references: [id], onDelete: Cascade)
   Curso        Curso?        @relation(fields: [cursoId], references: [id])
   Modulo       Modulo?       @relation(fields: [moduloId], references: [id])
+=======
+  Formador     Formador?     @relation(fields: [formadorId], references: [id], onDelete: Cascade)
+>>>>>>> 56238e2b0e5f26a79e4271bffc3fe9ccc15ee8e5
 }
 
 model DocumentoFormador {
@@ -272,8 +314,14 @@ model ItemTemplateAvaliacao {
   descricao          String?         /// Instruções ou descrição do trabalho
   peso               Float           /// Peso em percentagem (máx 80%) - ex: 20.0 para 20%
   ordem              Int             @default(1) /// Ordem de exibição na tabela
+<<<<<<< HEAD
   dataLimite         DateTime?       /// Data limite para entrega
   ficheiroAnexoUrl   String?         /// Arquivo de apoio enviado pelo formador
+=======
+  descricao          String?
+  dataLimite         DateTime?
+  ficheiroAnexoUrl   String?
+>>>>>>> 56238e2b0e5f26a79e4271bffc3fe9ccc15ee8e5
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   
@@ -355,6 +403,7 @@ enum StatusPresenca {
   AUSENTE
   PENDENTE
   JUSTIFICADO
+  PENDENTE
 }
 
 enum StatusDocumento {
@@ -368,4 +417,34 @@ enum StatusConvite {
   PENDENTE
   ACEITE
   RECUSADO
+}
+
+/// ReviewModulo: Avaliações/reviews de módulos (existente na BD)
+model ReviewModulo {
+  id         String   @id @default(uuid())
+  formandoId String
+  moduloId   String
+  rating     Int?
+  nota       Float?
+  comentario String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([formandoId, moduloId])
+}
+
+/// SubmissaoTrabalho: Submissões de trabalhos/tarefas (existente na BD)
+model SubmissaoTrabalho {
+  id         String   @id @default(uuid())
+  itemId     String
+  formandoId String
+  ficheiro   String?
+  comentario String?
+  ficheiroUrl String?
+  dataSubmissao DateTime @default(now())
+  dataEntrega DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([itemId, formandoId])
+  @@index([formandoId])
 }
