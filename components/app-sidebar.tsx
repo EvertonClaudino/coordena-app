@@ -127,14 +127,14 @@ export function AppSidebar({ user }: AppSidebarProps) {
   };
 
   return (
-    <aside className="flex h-full w-[268px] shrink-0 flex-col border-r border-gray-200 bg-white/50 backdrop-blur-xl">
+    <aside className="flex h-full w-[268px] shrink-0 flex-col border-r border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-950/80 backdrop-blur-xl">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-6 transition-all">
         <div className={cn("flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-sm", cfg.logo)}>
           <GraduationCap className="h-5 w-5" />
         </div>
         <div className="flex flex-col">
-          <span className="text-base font-extrabold text-gray-900 tracking-tight leading-tight">Coordena</span>
+          <span className="text-base font-extrabold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">Coordena</span>
           <span className="text-[10px] font-bold tracking-widest uppercase opacity-80" style={{ color: cfg.color }}>
             {cfg.label}
           </span>
@@ -151,9 +151,9 @@ export function AppSidebar({ user }: AppSidebarProps) {
               {groupName !== "OUTROS" && (
                 <button
                   onClick={() => toggleGroup(groupName)}
-                  className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors group"
+                  className="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group"
                 >
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-600 transition-colors">
+                  <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
                     {groupName}
                   </span>
                   <ChevronDown className={cn("h-3.5 w-3.5 text-gray-400 transition-transform duration-200", isOpen ? "" : "-rotate-90")} />
@@ -178,10 +178,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all w-full",
                           isActive
                             ? cfg.active
-                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                            : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
                         )}
                       >
-                        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? cfg.iconActive : "text-gray-400")} />
+                        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? cfg.iconActive : "text-gray-400 dark:text-gray-500")} />
                         {item.label}
                       </Link>
                     );
@@ -194,12 +194,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
       </nav>
 
       {/* Footer / Logout */}
-      <div className="p-4 border-t border-gray-100 bg-white/30">
+      <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-white/30 dark:bg-gray-900/30">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer group"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all cursor-pointer group"
         >
-          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gray-50 group-hover:bg-red-100 transition-colors">
+          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gray-50 dark:bg-gray-800 group-hover:bg-red-100 dark:group-hover:bg-red-900/50 transition-colors">
             <LogOut className="h-4 w-4 shrink-0 text-gray-400 group-hover:text-red-600 transition-colors" />
           </div>
           Terminar sessão

@@ -56,14 +56,14 @@ export function ReviewLista({ initialModulos }: ReviewListaProps) {
             {modulos.map(modulo => (
                 <div
                     key={modulo.id}
-                    className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-6"
+                    className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-6"
                 >
                     <div className="flex justify-between items-start gap-4">
                         <div>
                             <p className="text-[10px] font-bold text-teal-600 uppercase tracking-widest leading-none mb-1">
                                 {modulo.cursoNome}
                             </p>
-                            <h3 className="font-bold text-gray-900 line-clamp-1">{modulo.nome}</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-gray-100 line-clamp-1">{modulo.nome}</h3>
                         </div>
 
                         {modulo.hasReview && (
@@ -87,7 +87,7 @@ export function ReviewLista({ initialModulos }: ReviewListaProps) {
                             onCancel={editingId === modulo.id ? () => setEditingId(null) : undefined}
                         />
                     ) : (
-                        <div className="bg-gray-50 rounded-2xl p-4 space-y-3 relative group">
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 space-y-3 relative group">
                             <button
                                 onClick={() => setEditingId(modulo.id)}
                                 className="absolute top-4 right-4 text-gray-300 hover:text-teal-600 transition-colors opacity-0 group-hover:opacity-100"
@@ -110,7 +110,7 @@ export function ReviewLista({ initialModulos }: ReviewListaProps) {
                                 ))}
                             </div>
 
-                            <p className="text-sm text-gray-600 italic">"{modulo.review?.comentario}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 italic">"{modulo.review?.comentario}"</p>
 
                             <p className="text-[10px] text-gray-400">
                                 Avaliado em{" "}
@@ -175,7 +175,7 @@ function ReviewForm({
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">O teu comentário</span>
 
                 <textarea
-                    className="w-full rounded-2xl border-gray-100 bg-gray-50 p-4 text-sm focus:ring-teal-500 focus:border-teal-500 min-h-[100px] resize-none"
+                    className="w-full rounded-2xl border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-gray-200 p-4 text-sm focus:ring-teal-500 focus:border-teal-500 min-h-[100px] resize-none"
                     placeholder="O que achaste deste módulo?"
                     value={comentario}
                     onChange={e => setComentario(e.target.value)}
