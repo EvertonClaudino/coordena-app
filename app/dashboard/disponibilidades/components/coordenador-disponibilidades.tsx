@@ -31,14 +31,14 @@ function GrelhaDisponibilidade({
       )}
       <table className="w-full min-w-[500px] border-separate border-spacing-1">
         <thead>
-          <tr>
-            <th className="w-16 text-left text-[11px] font-semibold text-gray-400 pb-1">
+          <tr className="transition-colors">
+            <th className="w-16 text-left text-[11px] font-semibold text-gray-400 dark:text-gray-500 pb-1">
               Hora
             </th>
             {DIAS.map((dia) => (
               <th
                 key={dia}
-                className="text-center text-[11px] font-semibold text-gray-500 pb-1"
+                className="text-center text-[11px] font-semibold text-gray-500 dark:text-gray-400 pb-1 transition-colors"
               >
                 {dia}
               </th>
@@ -50,8 +50,8 @@ function GrelhaDisponibilidade({
             [0, 30].map((minuto) => {
               const label = `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`;
               return (
-                <tr key={`${hora}-${minuto}`}>
-                  <td className="text-[11px] text-gray-400 pr-2 align-middle">
+                <tr key={`${hora}-${minuto}`} className="transition-colors">
+                  <td className="text-[11px] text-gray-400 dark:text-gray-500 pr-2 align-middle">
                     {label}
                   </td>
                   {DIAS.map((dia) => {
@@ -63,8 +63,8 @@ function GrelhaDisponibilidade({
                           className={cn(
                             "h-7 w-full rounded-lg border transition-colors",
                             ativo
-                              ? "border-purple-300 bg-purple-100"
-                              : "border-gray-100 bg-gray-50",
+                              ? "border-purple-300 dark:border-purple-800 bg-purple-100 dark:bg-purple-900/40"
+                              : "border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/50",
                           )}
                         />
                       </td>
@@ -100,10 +100,10 @@ export default function DisponibilidadesCoordenador({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-[26px] font-bold text-gray-900">
+          <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100 transition-colors">
             Disponibilidades
           </h1>
-          <p className="mt-0.5 text-sm text-gray-500">
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400 transition-colors">
             Consulta as disponibilidades semanais dos formadores
           </p>
         </div>
@@ -113,16 +113,16 @@ export default function DisponibilidadesCoordenador({
             placeholder="Pesquisar formador..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-white border-gray-200 text-sm rounded-xl"
+            className="pl-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-sm rounded-xl dark:text-gray-200 transition-colors"
           />
         </div>
       </div>
 
       {/* Lista */}
       {filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center">
-          <Clock className="h-10 w-10 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">Nenhum formador encontrado</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center transition-colors">
+          <Clock className="h-10 w-10 text-gray-300 dark:text-gray-700 mb-3" />
+          <p className="text-sm text-gray-400 dark:text-gray-500">Nenhum formador encontrado</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -139,23 +139,23 @@ export default function DisponibilidadesCoordenador({
             return (
               <div
                 key={f.id}
-                className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
+                className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden transition-colors"
               >
                 <button
                   onClick={() => setExpandido(isOpen ? null : f.id)}
-                  className="flex w-full items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors text-left"
+                  className="flex w-full items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
                 >
-                  <Avatar className="h-10 w-10 border-2 border-gray-100 shrink-0">
-                    <AvatarFallback className="bg-indigo-100 text-indigo-600 text-sm font-semibold">
+                  <Avatar className="h-10 w-10 border-2 border-gray-100 dark:border-gray-800 shrink-0 transition-colors">
+                    <AvatarFallback className="bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 text-sm font-semibold">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex flex-1 flex-col gap-0.5 min-w-0">
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                       {f.user.nome}
                     </span>
-                    <span className="text-xs text-gray-400 truncate">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 truncate transition-colors">
                       {f.especialidade ?? f.user.email}
                     </span>
                   </div>
@@ -163,10 +163,10 @@ export default function DisponibilidadesCoordenador({
                   <div className="flex items-center gap-2 shrink-0">
                     <span
                       className={cn(
-                        "rounded-full px-3 py-0.5 text-xs font-medium",
+                        "rounded-full px-3 py-0.5 text-xs font-medium transition-colors",
                         temDados
-                          ? "bg-purple-50 text-purple-600 border border-purple-200"
-                          : "bg-gray-100 text-gray-500",
+                          ? "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400",
                       )}
                     >
                       {temDados
@@ -193,7 +193,7 @@ export default function DisponibilidadesCoordenador({
                 </button>
 
                 {isOpen && (
-                  <div className="border-t border-gray-100 px-5 py-5">
+                  <div className="border-t border-gray-100 dark:border-gray-800 px-5 py-5 transition-colors">
                     <GrelhaDisponibilidade
                       disponibilidades={f.disponibilidades}
                     />
@@ -206,12 +206,12 @@ export default function DisponibilidadesCoordenador({
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-400">
+      <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 transition-colors">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-purple-400" /> Disponível
+          <span className="h-3 w-3 rounded-full bg-purple-400 dark:bg-purple-500" /> Disponível
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-gray-200" /> Indisponível /
+          <span className="h-3 w-3 rounded-full bg-gray-200 dark:bg-gray-700" /> Indisponível /
           Sem dados
         </span>
       </div>

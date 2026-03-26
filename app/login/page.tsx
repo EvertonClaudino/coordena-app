@@ -10,6 +10,7 @@ import {
   Zap,
   ArrowRight,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // ─── Role Cards ───────────────────────────────────────────────────────────────
 
@@ -64,14 +65,19 @@ const features = [
 
 export default function LoginPage() {
   return (
-    <div className="relative min-h-screen overflow-auto bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100">
+    <div className="relative min-h-screen overflow-auto bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-indigo-950/20 dark:to-gray-950 transition-colors">
       {/* Decorative blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-indigo-200/40 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-blue-200/40 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-indigo-200/40 dark:bg-indigo-900/20 blur-3xl transition-colors" />
+        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-blue-200/40 dark:bg-blue-900/20 blur-3xl transition-colors" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center px-4 py-16">
+        {/* Theme Toggle */}
+        <div className="absolute right-6 top-6">
+          <ThemeToggle />
+        </div>
+
         {/* Logo + Title */}
         <div className="flex flex-col items-center gap-5 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-200">
@@ -79,10 +85,10 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <h1 className="text-6xl font-black tracking-tight text-indigo-700">
+            <h1 className="text-6xl font-black tracking-tight text-indigo-700 dark:text-indigo-400">
               Coordena
             </h1>
-            <p className="max-w-md text-center text-base leading-relaxed text-gray-500">
+            <p className="max-w-md text-center text-base leading-relaxed text-gray-500 dark:text-gray-400">
               Gestão inteligente de formação profissional. Cursos, formadores,
               <br />
               formandos e documentos — tudo num só lugar.
@@ -97,7 +103,7 @@ export default function LoginPage() {
             return (
               <div
                 key={role.id}
-                className="group flex flex-col items-center gap-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-white p-8 text-center shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+                className="group flex flex-col items-center gap-4 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-white dark:border-gray-800 p-8 text-center shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200"
               >
                 {/* Icon */}
                 <div
@@ -108,8 +114,8 @@ export default function LoginPage() {
 
                 {/* Text */}
                 <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-bold text-gray-900">{role.label}</h2>
-                  <p className="text-sm leading-relaxed text-gray-400">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{role.label}</h2>
+                  <p className="text-sm leading-relaxed text-gray-400 dark:text-gray-500">
                     {role.description}
                   </p>
                 </div>
@@ -117,7 +123,7 @@ export default function LoginPage() {
                 {/* Entrar link */}
                 <Link
                   href={role.href}
-                  className="mt-1 flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:gap-2 transition-all"
+                  className="mt-1 flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:gap-2 transition-all"
                 >
                   Entrar <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -134,10 +140,10 @@ export default function LoginPage() {
               <div key={feature.label} className="flex flex-col items-center gap-3 text-center">
                 <Icon className="h-6 w-6 text-indigo-400" strokeWidth={1.5} />
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {feature.label}
                   </span>
-                  <span className="text-xs leading-relaxed text-gray-400">
+                  <span className="text-xs leading-relaxed text-gray-400 dark:text-gray-500">
                     {feature.description}
                   </span>
                 </div>
@@ -147,7 +153,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-20 text-xs text-gray-400">
+        <p className="mt-20 text-xs text-gray-400 dark:text-gray-500">
           © {new Date().getFullYear()} Coordena · Todos os direitos reservados
         </p>
       </div>

@@ -83,29 +83,29 @@ function FormadorRowItem({
   const initials = formador.nome.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden transition-colors">
       <div className="flex items-center gap-4 px-6 py-4">
-        <Avatar className="h-12 w-12 border-2 border-gray-100 shrink-0">
+        <Avatar className="h-12 w-12 border-2 border-gray-100 dark:border-gray-800 shrink-0 transition-colors">
           <AvatarImage src={formador.avatar} />
-          <AvatarFallback className="bg-indigo-100 text-indigo-600 font-semibold text-sm">
+          <AvatarFallback className="bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 font-semibold text-sm">
             {initials}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-          <span className="text-sm font-bold text-gray-900">{formador.nome}</span>
-          <span className="text-xs text-gray-400">{formador.email}</span>
+          <span className="text-sm font-bold text-gray-900 dark:text-gray-100 transition-colors">{formador.nome}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 transition-colors">{formador.email}</span>
         </div>
 
         {formador.status === "aceite" && (
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-32 h-2 rounded-full bg-gray-100 overflow-hidden">
+            <div className="w-32 h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
               <div
-                className={cn("h-full rounded-full", getProgressColor(validos, total))}
+                className={cn("h-full rounded-full transition-all", getProgressColor(validos, total))}
                 style={{ width: `${(validos / total) * 100}%` }}
               />
             </div>
-            <span className="text-sm font-semibold text-gray-700 w-8 text-right">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 w-8 text-right transition-colors">
               {validos}/{total}
             </span>
           </div>
@@ -140,7 +140,7 @@ function FormadorRowItem({
           {formador.status === "aceite" && (
             <button
               onClick={() => setExpanded((e) => !e)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -149,7 +149,7 @@ function FormadorRowItem({
       </div>
 
       {formador.status === "aceite" && expanded && (
-        <div className="border-t border-gray-100 px-6 py-4">
+        <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4 transition-colors">
           <div className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4">
             {formador.documentos.map((doc) => {
               const cfg = DOC_STATUS_CONFIG[doc.status];
@@ -158,10 +158,10 @@ function FormadorRowItem({
                   <CheckCircle2
                     className={cn(
                       "h-4 w-4 shrink-0",
-                      doc.status === "válido" ? "text-green-500" : "text-gray-200"
+                      doc.status === "válido" ? "text-green-500" : "text-gray-200 dark:text-gray-800"
                     )}
                   />
-                  <span className="text-sm text-gray-700 truncate">{doc.nome}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 truncate transition-colors">{doc.nome}</span>
                   <span className={cn("text-xs font-medium shrink-0", cfg.color)}>
                     {cfg.label}
                   </span>
@@ -207,8 +207,8 @@ export function CoordenadorDocumentos({ formadores: formadoresIniciais }: Coorde
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-[26px] font-bold text-gray-900">Documentos</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Gestão documental dos formadores</p>
+          <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100 transition-colors">Documentos</h1>
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400 transition-colors">Gestão documental dos formadores</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative w-64">
@@ -217,7 +217,7 @@ export function CoordenadorDocumentos({ formadores: formadoresIniciais }: Coorde
               placeholder="Pesquisar formadores..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-white border-gray-200 text-sm rounded-xl"
+              className="pl-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-sm rounded-xl dark:text-gray-200 transition-colors"
             />
           </div>
         </div>
@@ -226,7 +226,7 @@ export function CoordenadorDocumentos({ formadores: formadoresIniciais }: Coorde
       {/* Lista de formadores */}
       <div className="flex flex-col gap-3">
         {aceites.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-8">Nenhum formador encontrado</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8 transition-colors">Nenhum formador encontrado</p>
         )}
         {aceites.map((f) => (
           <FormadorRowItem
@@ -239,15 +239,15 @@ export function CoordenadorDocumentos({ formadores: formadoresIniciais }: Coorde
 
       {/* Pendentes */}
       {pendentes.length > 0 && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 px-5 py-4 transition-colors">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-amber-800">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
                 Formadores com convite pendente
               </p>
               {pendentes.map((f) => (
-                <p key={f.id} className="text-sm text-amber-600 mt-0.5">
+                <p key={f.id} className="text-sm text-amber-600 dark:text-amber-400 mt-0.5">
                   {f.nome} — os documentos só ficam visíveis após aceitarem o convite.
                 </p>
               ))}

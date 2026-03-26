@@ -71,7 +71,7 @@ export async function CoordenadorDashboard({ userName }: { userName: string }) {
     <div className="flex flex-col gap-8">
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div>
-        <h1 className="text-[28px] font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-[28px] font-bold text-gray-900 dark:text-gray-100 transition-colors">
           {greeting}, {userName.split(" ")[0]} 👋
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

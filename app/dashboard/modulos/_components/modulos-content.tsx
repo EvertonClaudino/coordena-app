@@ -96,37 +96,37 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
           Novo Módulo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 transition-colors">
         <DialogHeader>
-          <DialogTitle>Criar Novo Módulo</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-gray-900 dark:text-gray-100">Criar Novo Módulo</DialogTitle>
+          <DialogDescription className="text-gray-500 dark:text-gray-400">
             Preenche os dados para adicionar um novo módulo.
           </DialogDescription>
         </DialogHeader>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-            <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-3 py-2 transition-colors">
+            <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
-            <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-            <p className="text-sm text-green-700">Módulo criado com sucesso!</p>
+          <div className="flex items-center gap-2 rounded-lg border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30 px-3 py-2 transition-colors">
+            <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400 shrink-0" />
+            <p className="text-sm text-green-700 dark:text-green-300">Módulo criado com sucesso!</p>
           </div>
         )}
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label>Curso *</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Curso *</Label>
             <select
               name="cursoId"
               value={formData.cursoId}
               onChange={handleInputChange}
               disabled={loading}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
               <option value="">Seleciona um curso...</option>
               {cursos.map(curso => (
@@ -137,28 +137,30 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Nome do módulo *</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Nome do módulo *</Label>
             <Input
               name="nome"
               placeholder="Ex: Design Gráfico"
               value={formData.nome}
               onChange={handleInputChange}
               disabled={loading}
+              className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Descrição (opcional)</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Descrição (opcional)</Label>
             <Input
               name="descricao"
               placeholder="Descrição do módulo"
               value={formData.descricao}
               onChange={handleInputChange}
               disabled={loading}
+              className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Ordem</Label>
+              <Label className="text-gray-700 dark:text-gray-300">Ordem</Label>
               <Input
                 type="number"
                 name="ordem"
@@ -167,10 +169,11 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
                 onChange={handleInputChange}
                 disabled={loading}
                 min="0"
+                className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Carga horária (horas)</Label>
+              <Label className="text-gray-700 dark:text-gray-300">Carga horária (horas)</Label>
               <Input
                 type="number"
                 name="cargaHoraria"
@@ -179,17 +182,18 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
                 onChange={handleInputChange}
                 disabled={loading}
                 min="0"
+                className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Formador (opcional)</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Formador (opcional)</Label>
             <select
               name="formadorId"
               value={formData.formadorId}
               onChange={handleInputChange}
               disabled={loading}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
               <option value="">Sem formador</option>
               {formadores.map(formador => (
@@ -201,7 +205,7 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading} className="dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
           </Button>
           <Button
@@ -294,26 +298,26 @@ function ExcluirModuloDialog({ modulo, onClose, onConfirm }: { modulo: ModuloCom
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 transition-colors">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
             <AlertCircle className="h-5 w-5" />
             Excluir Módulo
           </DialogTitle>
-          <DialogDescription>
-            Tens a certeza que pretendes excluir o módulo <span className="font-bold text-gray-900">"{modulo.nome}"</span>?
+          <DialogDescription className="text-gray-500 dark:text-gray-400">
+            Tens a certeza que pretendes excluir o módulo <span className="font-bold text-gray-900 dark:text-gray-100">"{modulo.nome}"</span>?
             Esta ação não pode ser desfeita e pode falhar se existirem aulas ou avaliações associadas.
           </DialogDescription>
         </DialogHeader>
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-700 dark:text-red-300 transition-colors">
             {error}
           </div>
         )}
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onClose} disabled={loading} className="rounded-xl">
+          <Button variant="outline" onClick={onClose} disabled={loading} className="rounded-xl dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
           </Button>
           <Button
@@ -401,35 +405,35 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 transition-colors">
         <DialogHeader>
-          <DialogTitle>Editar Módulo</DialogTitle>
-          <DialogDescription>Atualiza os dados do módulo.</DialogDescription>
+          <DialogTitle className="text-gray-900 dark:text-gray-100">Editar Módulo</DialogTitle>
+          <DialogDescription className="text-gray-500 dark:text-gray-400">Atualiza os dados do módulo.</DialogDescription>
         </DialogHeader>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-            <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 px-3 py-2 transition-colors">
+            <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
-            <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-            <p className="text-sm text-green-700">Módulo atualizado com sucesso!</p>
+          <div className="flex items-center gap-2 rounded-lg border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/30 px-3 py-2 transition-colors">
+            <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400 shrink-0" />
+            <p className="text-sm text-green-700 dark:text-green-300">Módulo atualizado com sucesso!</p>
           </div>
         )}
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-1.5">
-            <Label>Curso</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Curso</Label>
             <select
               name="cursoId"
               value={formData.cursoId}
               onChange={handleInputChange}
               disabled={loading}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
               {cursos.map(curso => (
                 <option key={curso.id} value={curso.id}>
@@ -439,26 +443,28 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Nome do módulo</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Nome do módulo</Label>
             <Input
               name="nome"
               value={formData.nome}
               onChange={handleInputChange}
               disabled={loading}
+              className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Descrição</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Descrição</Label>
             <Input
               name="descricao"
               value={formData.descricao}
               onChange={handleInputChange}
               disabled={loading}
+              className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Ordem</Label>
+              <Label className="text-gray-700 dark:text-gray-300">Ordem</Label>
               <Input
                 type="number"
                 name="ordem"
@@ -466,10 +472,11 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
                 onChange={handleInputChange}
                 disabled={loading}
                 min="0"
+                className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Carga horária</Label>
+              <Label className="text-gray-700 dark:text-gray-300">Carga horária</Label>
               <Input
                 type="number"
                 name="cargaHoraria"
@@ -477,17 +484,18 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
                 onChange={handleInputChange}
                 disabled={loading}
                 min="0"
+                className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Formador</Label>
+            <Label className="text-gray-700 dark:text-gray-300">Formador</Label>
             <select
               name="formadorId"
               value={formData.formadorId}
               onChange={handleInputChange}
               disabled={loading}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
               <option value="">Sem formador</option>
               {formadores.map(formador => (
@@ -499,7 +507,7 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+          <Button variant="outline" onClick={onClose} disabled={loading} className="dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
           </Button>
           <Button
