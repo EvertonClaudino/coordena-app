@@ -55,10 +55,10 @@ const STATUS_MAP: Record<string, DocStatus> = {
 };
 
 const DOC_STATUS_CONFIG: Record<DocStatus, { label: string; color: string }> = {
-  "válido": { label: "Válido", color: "text-green-600" },
-  "expirado": { label: "Expirado", color: "text-red-500" },
-  "a expirar": { label: "A expirar", color: "text-amber-500" },
-  "em falta": { label: "Em falta", color: "text-gray-400" },
+  "válido": { label: "Válido", color: "text-green-600 dark:text-green-500" },
+  "expirado": { label: "Expirado", color: "text-red-500 dark:text-red-400" },
+  "a expirar": { label: "A expirar", color: "text-amber-500 dark:text-amber-400" },
+  "em falta": { label: "Em falta", color: "text-gray-400 dark:text-gray-500" },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -190,9 +190,9 @@ export function CoordenadorDocumentos({ formadores: formadoresIniciais }: Coorde
       nome: f.nome,
       email: f.email,
       status: "aceite" as const,
-      documentos: f.documentos.map((d: any) => ({
+      documentos: f.documentos.map((d: { nome: string; status: string }) => ({
         nome: d.nome,
-        status: STATUS_MAP[d.status] ?? "em falta",
+        status: (STATUS_MAP[d.status] || "em falta") as DocStatus,
       })),
     }))
   );

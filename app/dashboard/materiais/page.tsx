@@ -13,7 +13,7 @@ export default async function MateriaisPage() {
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 md:px-8">
       <header className="mb-8 space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
           Materiais de Apoio
         </h1>
         <p className="text-lg text-gray-500 dark:text-gray-400">

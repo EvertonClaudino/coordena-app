@@ -133,7 +133,7 @@ export default function FormadorNotasPage() {
 
           if (resultado.notas && resultado.notas.length > 0) {
             novasNotas[aluno.id] = {};
-            resultado.notas.forEach((nota: any) => {
+            resultado.notas.forEach((nota: { item: { id: string }; valor: number }) => {
               // Só incluir nota se o item ainda existe no template
               if (itemsValidos.has(nota.item.id)) {
                 novasNotas[aluno.id][nota.item.id] = nota.valor;
