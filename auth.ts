@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-    adapter: PrismaAdapter(prisma) as any,
+    adapter: PrismaAdapter(prisma) as import("@auth/core/adapters").Adapter,
     session: { strategy: 'jwt' },
     providers: [
         Credentials({
@@ -35,6 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     name: user.nome,
                     email: user.email,
                     role: user.role,
+                    image: user.image,
                 }
             },
         }),
@@ -43,7 +44,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id
-                token.role = (user as any).role
+                token.role = (user as { role?: string }).role
+                token.picture = user.image
             }
             return token
         },
@@ -51,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (token) {
                 session.user.id = token.id as string
                 session.user.role = token.role as "COORDENADOR" | "FORMADOR" | "FORMANDO"
+                session.user.image = token.picture as string | undefined | null
             }
             return session
         },

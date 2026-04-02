@@ -4,8 +4,6 @@ import { useState } from "react";
 import {
     FileText,
     Clock,
-    Calendar,
-    Upload,
     CheckCircle2,
     AlertCircle,
     Clock3,
@@ -39,12 +37,21 @@ interface Props {
 // ---------------------------------------------------------------------------
 // Sub-componentes auxiliares
 // ---------------------------------------------------------------------------
-function KPI({ label, value, icon: Icon, bg, iconBg, iconColor }: any) {
+interface KPIProps {
+    label: string;
+    value: number | string;
+    icon: React.ElementType;
+    bg: string;
+    iconBg: string;
+    iconColor: string;
+}
+
+function KPI({ label, value, icon: Icon, bg, iconBg, iconColor }: KPIProps) {
     return (
         <div className={cn('flex items-center justify-between rounded-2xl p-5 border border-slate-100/50 shadow-sm', bg)}>
             <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">{label}</span>
-                <span className="text-4xl font-bold text-slate-900">{value}</span>
+                <span className="text-[11px] font-semibold tracking-widest text-slate-500 dark:text-slate-400 uppercase">{label}</span>
+                <span className="text-4xl font-bold text-slate-900 dark:text-gray-100">{value}</span>
             </div>
             <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', iconBg)}>
                 <Icon className={cn('h-6 w-6', iconColor)} />
@@ -65,18 +72,18 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
 
     const stats = {
         total: trabalhos.length,
-        entregues: trabalhos.filter((t: any) => t.status === 'ENTREGUE').length,
-        pendentes: trabalhos.filter((t: any) => t.status === 'PENDENTE').length,
-        emFalta: trabalhos.filter((t: any) => t.status === 'EM_FALTA' || t.status === 'ATRASADO').length,
+        entregues: trabalhos.filter((t) => t.status === 'ENTREGUE').length,
+        pendentes: trabalhos.filter((t) => t.status === 'PENDENTE').length,
+        emFalta: trabalhos.filter((t) => t.status === 'EM_FALTA' || t.status === 'ATRASADO').length,
     };
 
-    const groupedTrabalhos = (trabalhos as any[]).reduce((acc: any, t: any) => {
+    const groupedTrabalhos = (trabalhos as MeusTrabalhos).reduce((acc, t) => {
         if (!acc[t.moduloId]) {
             acc[t.moduloId] = { nome: t.moduloNome, items: [] };
         }
         acc[t.moduloId].items.push(t);
         return acc;
-    }, {} as Record<string, { nome: string, items: any[] }>);
+    }, {} as Record<string, { nome: string, items: MeusTrabalhos }>);
 
     const handleSubmeter = async (itemId: string, formData: FormData) => {
         setSubmetendo(true);
@@ -86,7 +93,7 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
             const fileUrl = file ? file.name : "trabalho_entregue.pdf";
             await submeterTrabalho(itemId, fileUrl, comentario);
             alert("Trabalho entregue com sucesso!");
-        } catch (error) {
+        } catch {
             alert("Ocorreu um erro ao submeter o trabalho.");
         } finally {
             setSubmetendo(false);
@@ -102,7 +109,7 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
             >
                 <div>
-                    <h1 className="text-[26px] font-bold text-gray-900">
+                    <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100">
                         Entrega de Trabalhos
                     </h1>
                     <p className="mt-1 text-sm text-gray-400">Gere as tuas tarefas e submissões por módulo</p>
@@ -120,32 +127,32 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                     label="Total Trabalhos"
                     value={stats.total}
                     icon={FileText}
-                    bg="bg-white"
-                    iconBg="bg-slate-50"
+                    bg="bg-white dark:bg-gray-900"
+                    iconBg="bg-slate-50 dark:bg-gray-800"
                     iconColor="text-slate-600"
                 />
                 <KPI
                     label="Entregues"
                     value={stats.entregues}
                     icon={CheckCircle2}
-                    bg="bg-emerald-50/30"
-                    iconBg="bg-emerald-50"
+                    bg="bg-emerald-50/30 dark:bg-emerald-950/30"
+                    iconBg="bg-emerald-50 dark:bg-emerald-900/30"
                     iconColor="text-emerald-600"
                 />
                 <KPI
                     label="Pendentes"
                     value={stats.pendentes}
                     icon={Clock3}
-                    bg="bg-amber-50/30"
-                    iconBg="bg-amber-50"
+                    bg="bg-amber-50/30 dark:bg-amber-950/30"
+                    iconBg="bg-amber-50 dark:bg-amber-900/30"
                     iconColor="text-amber-600"
                 />
                 <KPI
                     label="Em Falta"
                     value={stats.emFalta}
                     icon={AlertCircle}
-                    bg="bg-red-50/30"
-                    iconBg="bg-red-50"
+                    bg="bg-red-50/30 dark:bg-red-950/30"
+                    iconBg="bg-red-50 dark:bg-red-900/30"
                     iconColor="text-red-600"
                 />
             </motion.div>
@@ -157,22 +164,22 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                 transition={{ delay: 0.2 }}
                 className="flex flex-col gap-6"
             >
-                {Object.entries(groupedTrabalhos).map(([modId, mod]: [string, any], idx) => {
+                {Object.entries(groupedTrabalhos).map(([modId, mod], idx) => {
                     const isExpanded = expandedModules.includes(modId) || (expandedModules.length === 0 && idx === 0);
-                    const itemsPendentes = mod.items.filter((i: any) => i.status === 'PENDENTE' || i.status === 'EM_FALTA' || i.status === 'ATRASADO').length;
+                    const itemsPendentes = mod.items.filter((i) => i.status === 'PENDENTE' || i.status === 'EM_FALTA' || i.status === 'ATRASADO').length;
 
                     return (
-                        <div key={modId} className="bg-white rounded-[32px] border border-slate-100/50 overflow-hidden shadow-xl shadow-slate-200/50 transition-all">
+                        <div key={modId} className="bg-white dark:bg-gray-900 rounded-[32px] border border-slate-100/50 dark:border-gray-800 overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none transition-all">
                             <button
                                 onClick={() => toggleModule(modId)}
-                                className="w-full flex items-center justify-between p-6 hover:bg-slate-50/50 transition-colors"
+                                className="w-full flex items-center justify-between p-6 hover:bg-slate-50/50 dark:hover:bg-gray-800/40 transition-colors"
                             >
                                 <div className="flex items-center gap-5">
                                     <div className="h-12 w-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0 shadow-inner">
                                         <FileText className="w-6 h-6" />
                                     </div>
                                     <div className="text-left min-w-0">
-                                        <h3 className="font-bold text-slate-900 text-lg truncate">{mod.nome}</h3>
+                                        <h3 className="font-bold text-slate-900 dark:text-gray-100 text-lg truncate">{mod.nome}</h3>
                                         {itemsPendentes > 0 ? (
                                             <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50">{itemsPendentes} {itemsPendentes === 1 ? 'Tarefa pendente' : 'Tarefas pendentes'}</span>
                                         ) : (
@@ -192,10 +199,10 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                                        className="border-t border-slate-100 overflow-hidden"
+                                        className="border-t border-slate-100 dark:border-gray-800 overflow-hidden"
                                     >
                                         <div className="p-4 flex flex-col gap-3">
-                                            {mod.items.map((trabalho: any) => (
+                                            {mod.items.map((trabalho) => (
                                                 <TrabalhoCard
                                                     key={trabalho.id}
                                                     trabalho={trabalho}
@@ -213,10 +220,10 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                 })}
 
                 {Object.keys(groupedTrabalhos).length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                    <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-900 rounded-3xl border border-dashed border-slate-200 dark:border-gray-700">
                         <FileText className="w-12 h-12 text-slate-200 mb-4" />
-                        <h3 className="text-lg font-bold text-slate-900">Sem trabalhos atribuídos</h3>
-                        <p className="text-sm text-slate-500">Ainda não tens trabalhos para entregar de momento.</p>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-gray-100">Sem trabalhos atribuídos</h3>
+                        <p className="text-sm text-slate-500 dark:text-gray-400">Ainda não tens trabalhos para entregar de momento.</p>
                     </div>
                 )}
             </motion.div>
@@ -224,7 +231,7 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
     );
 }
 
-function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho: any, onSubmeter: (id: string, fd: FormData) => void, loading: boolean, moduloNome: string }) {
+function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho: MeusTrabalhos[number], onSubmeter: (id: string, fd: FormData) => void, loading: boolean, moduloNome: string }) {
     const statusConfig = {
         PENDENTE: { icon: Clock3, color: "bg-indigo-50 text-indigo-700 border-indigo-100/50", label: "Pendente" },
         ENTREGUE: { icon: CheckCircle2, color: "bg-emerald-50 text-emerald-700 border-emerald-100/50", label: "Entregue" },
@@ -236,25 +243,25 @@ function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho:
     const StatusIcon = config.icon;
 
     return (
-        <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 flex flex-col gap-4">
+        <div className="p-4 rounded-xl border border-slate-100 dark:border-gray-800 bg-slate-50/30 dark:bg-gray-900/50 flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap">
-                        <h4 className="font-bold text-slate-800">{trabalho.nome}</h4>
+                        <h4 className="font-bold text-slate-800 dark:text-gray-100">{trabalho.nome}</h4>
                         <div className={cn("flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border", config.color)}>
                             <StatusIcon className="w-3 h-3" />
                             {config.label}
                         </div>
                     </div>
                     {trabalho.descricao && (
-                        <p className="text-sm text-slate-500 line-clamp-1 italic">{trabalho.descricao}</p>
+                        <p className="text-sm text-slate-500 dark:text-gray-400 line-clamp-1 italic">{trabalho.descricao}</p>
                     )}
                 </div>
 
                 <div className="flex items-center gap-3 justify-between sm:justify-end">
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Entrega</span>
-                        <span className="text-xs font-bold text-slate-600">
+                        <span className="text-xs font-bold text-slate-600 dark:text-gray-300">
                             {trabalho.dataLimite ? new Date(trabalho.dataLimite).toLocaleDateString('pt-PT') : 'Sem prazo'}
                         </span>
                     </div>
@@ -286,7 +293,7 @@ function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho:
                                 {trabalho.descricao && (
                                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                                         <p className="text-xs font-semibold text-slate-600 leading-relaxed italic">
-                                            "{trabalho.descricao}"
+                                            &quot;{trabalho.descricao}&quot;
                                         </p>
                                     </div>
                                 )}
@@ -319,7 +326,7 @@ function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho:
                                             <span className="text-xs font-medium text-slate-700 truncate">{trabalho.submissao.ficheiroUrl}</span>
                                         </div>
                                         {trabalho.submissao.comentario && (
-                                            <p className="text-xs text-slate-600 italic">"{trabalho.submissao.comentario}"</p>
+                                            <p className="text-xs text-slate-600 italic">&quot;{trabalho.submissao.comentario}&quot;</p>
                                         )}
                                     </div>
                                 )}

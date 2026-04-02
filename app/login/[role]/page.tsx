@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from 'next-auth/react'
+import { ThemeToggle } from "@/components/theme-toggle";
 
 
 // ─── Role Config ──────────────────────────────────────────────────────────────
@@ -89,18 +90,23 @@ export default function LoginRolePage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-auto bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100">
+    <div className="relative min-h-screen overflow-auto bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-indigo-950/20 dark:to-gray-950 transition-colors">
       {/* Blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-indigo-200/40 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-blue-200/40 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-indigo-200/40 dark:bg-indigo-900/20 blur-3xl transition-colors" />
+        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-blue-200/40 dark:bg-blue-900/20 blur-3xl transition-colors" />
       </div>
 
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-12">
+        {/* Theme Toggle */}
+        <div className="absolute right-6 top-6">
+          <ThemeToggle />
+        </div>
+
         {/* Back */}
         <Link
           href="/login"
-          className="absolute left-6 top-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-700 transition-colors"
+          className="absolute left-6 top-6 flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Link>
@@ -116,19 +122,19 @@ export default function LoginRolePage() {
               <Icon className="h-7 w-7 text-white" />
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">{config.label}</h1>
-              <p className="mt-1 text-sm text-gray-400">{config.description}</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{config.label}</h1>
+              <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">{config.description}</p>
             </div>
           </div>
 
           {/* Form */}
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-white p-8 shadow-sm"
+            className="flex flex-col gap-4 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-white dark:border-gray-800 p-8 shadow-sm transition-colors"
           >
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email
               </Label>
               <Input
@@ -137,7 +143,7 @@ export default function LoginRolePage() {
                 placeholder="o.teu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={cn("rounded-xl border-gray-200 bg-white text-sm", config.ring)}
+                className={cn("rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950/50 text-sm dark:text-gray-100 transition-colors", config.ring)}
                 autoComplete="email"
                 disabled={loading}
               />
@@ -146,7 +152,7 @@ export default function LoginRolePage() {
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Palavra-passe
                 </Label>
                 <Link
@@ -163,7 +169,7 @@ export default function LoginRolePage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={cn("rounded-xl border-gray-200 bg-white text-sm pr-10", config.ring)}
+                  className={cn("rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950/50 text-sm dark:text-gray-100 pr-10 transition-colors", config.ring)}
                   autoComplete="current-password"
                   disabled={loading}
                 />
@@ -182,7 +188,7 @@ export default function LoginRolePage() {
 
             {/* Error */}
             {error && (
-              <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs font-medium text-red-600">
+              <p className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400">
                 {error}
               </p>
             )}
@@ -208,7 +214,7 @@ export default function LoginRolePage() {
           </form>
 
           {/* Footer */}
-          <p className="mt-6 text-center text-xs text-gray-400">
+          <p className="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
             © {new Date().getFullYear()} Coordena · Todos os direitos reservados
           </p>
         </div>
