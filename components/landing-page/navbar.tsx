@@ -27,6 +27,20 @@ export function Navbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    const handleNavClick = (
+        e: React.MouseEvent<HTMLAnchorElement>,
+        href: string,
+    ) => {
+        if (href.startsWith("#")) {
+            e.preventDefault();
+            const element = document.getElementById(href.replace("#", ""));
+            if (element) {
+                element.scrollIntoView({ behavior: "smooth" });
+                setMobileMenuOpen(false);
+            }
+        }
+    };
+
     return (
         <nav
             className={cn(
@@ -53,6 +67,7 @@ export function Navbar() {
                         <Link
                             key={link.name}
                             href={link.href}
+                            onClick={(e) => handleNavClick(e, link.href)}
                             className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         >
                             {link.name}
@@ -113,7 +128,7 @@ export function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={(e) => handleNavClick(e, link.href)}
                                 className="text-lg font-bold text-slate-900 dark:text-white"
                             >
                                 {link.name}
