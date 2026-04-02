@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useState } from "react";
 import { Menu, X, GraduationCap } from "lucide-react";
 
@@ -65,7 +66,8 @@ export function Header() {
                         </li>
                     ))}
                 </ul>
-                <div className="hidden md:flex gap-2">
+                <div className="hidden md:flex gap-2 items-center">
+                    <ThemeToggle />
                     <Link href="/login">
                         <Button size="sm">Entrar</Button>
                     </Link>
@@ -118,6 +120,9 @@ export function Header() {
                         ))}
                     </ul>
                     <div className="flex flex-col gap-2 mt-4">
+                        <div className="flex justify-end mb-2">
+                            <ThemeToggle />
+                        </div>
                         <Link href="/login" onClick={() => setOpen(false)}>
                             <Button size="sm" className="w-full">
                                 Entrar
