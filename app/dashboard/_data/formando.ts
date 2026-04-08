@@ -55,7 +55,6 @@ export async function getFormandoStats(userId: string) {
         pendingInvitations: convitesPendentes,
     };
 }
-}
 
 // ------------------- CURSO DO FORMANDO -------------------
 export async function getCursoFormando(userId: string) {
