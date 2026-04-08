@@ -7,7 +7,9 @@ export async function getFormandoStats(userId: string) {
         include: { inscricoes: true },
     });
 
-    if (!formando)
+    // Se não tem formando, retorna stats vazios (é formador, não formando)
+    if (!formando) {
+        console.log("[getFormandoStats] Formando not found for userId:", userId);
         return {
             cursosInscritos: 0,
             modulosCompletos: 0,
@@ -15,6 +17,7 @@ export async function getFormandoStats(userId: string) {
             proximasSessoes: 0,
             pendingInvitations: 0,
         };
+    }
 
     const inicioDoDia = new Date();
     inicioDoDia.setHours(0, 0, 0, 0);
@@ -515,7 +518,10 @@ export async function getMeusConvites(userId: string) {
         where: { userId },
     });
 
-    if (!formando) return [];
+    if (!formando) {
+        console.log("[getMeusConvites] Formando not found for userId:", userId);
+        return [];
+    }
 
     const convites = await prisma.convite.findMany({
         where: {
@@ -531,6 +537,8 @@ export async function getMeusConvites(userId: string) {
         },
         orderBy: { dataEnvio: "desc" },
     });
+
+    console.log("[getMeusConvites] Found convites:", convites.length, "for formandoId:", formando.id);
 
     return convites.map((c) => ({
         id: c.id,
