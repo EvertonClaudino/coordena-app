@@ -4,8 +4,6 @@ import { useState } from "react";
 import {
     FileText,
     Clock,
-    Calendar,
-    Upload,
     CheckCircle2,
     AlertCircle,
     Clock3,
@@ -39,7 +37,16 @@ interface Props {
 // ---------------------------------------------------------------------------
 // Sub-componentes auxiliares
 // ---------------------------------------------------------------------------
-function KPI({ label, value, icon: Icon, bg, iconBg, iconColor }: any) {
+interface KPIProps {
+    label: string;
+    value: number | string;
+    icon: React.ElementType;
+    bg: string;
+    iconBg: string;
+    iconColor: string;
+}
+
+function KPI({ label, value, icon: Icon, bg, iconBg, iconColor }: KPIProps) {
     return (
         <div className={cn('flex items-center justify-between rounded-2xl p-5 border border-slate-100/50 shadow-sm', bg)}>
             <div className="flex flex-col gap-1">
@@ -65,18 +72,18 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
 
     const stats = {
         total: trabalhos.length,
-        entregues: trabalhos.filter((t: any) => t.status === 'ENTREGUE').length,
-        pendentes: trabalhos.filter((t: any) => t.status === 'PENDENTE').length,
-        emFalta: trabalhos.filter((t: any) => t.status === 'EM_FALTA' || t.status === 'ATRASADO').length,
+        entregues: trabalhos.filter((t) => t.status === 'ENTREGUE').length,
+        pendentes: trabalhos.filter((t) => t.status === 'PENDENTE').length,
+        emFalta: trabalhos.filter((t) => t.status === 'EM_FALTA' || t.status === 'ATRASADO').length,
     };
 
-    const groupedTrabalhos = (trabalhos as any[]).reduce((acc: any, t: any) => {
+    const groupedTrabalhos = (trabalhos as MeusTrabalhos).reduce((acc, t) => {
         if (!acc[t.moduloId]) {
             acc[t.moduloId] = { nome: t.moduloNome, items: [] };
         }
         acc[t.moduloId].items.push(t);
         return acc;
-    }, {} as Record<string, { nome: string, items: any[] }>);
+    }, {} as Record<string, { nome: string, items: MeusTrabalhos }>);
 
     const handleSubmeter = async (itemId: string, formData: FormData) => {
         setSubmetendo(true);
@@ -86,7 +93,7 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
             const fileUrl = file ? file.name : "trabalho_entregue.pdf";
             await submeterTrabalho(itemId, fileUrl, comentario);
             alert("Trabalho entregue com sucesso!");
-        } catch (error) {
+        } catch {
             alert("Ocorreu um erro ao submeter o trabalho.");
         } finally {
             setSubmetendo(false);
@@ -157,9 +164,9 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                 transition={{ delay: 0.2 }}
                 className="flex flex-col gap-6"
             >
-                {Object.entries(groupedTrabalhos).map(([modId, mod]: [string, any], idx) => {
+                {Object.entries(groupedTrabalhos).map(([modId, mod], idx) => {
                     const isExpanded = expandedModules.includes(modId) || (expandedModules.length === 0 && idx === 0);
-                    const itemsPendentes = mod.items.filter((i: any) => i.status === 'PENDENTE' || i.status === 'EM_FALTA' || i.status === 'ATRASADO').length;
+                    const itemsPendentes = mod.items.filter((i) => i.status === 'PENDENTE' || i.status === 'EM_FALTA' || i.status === 'ATRASADO').length;
 
                     return (
                         <div key={modId} className="bg-white dark:bg-gray-900 rounded-[32px] border border-slate-100/50 dark:border-gray-800 overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none transition-all">
@@ -195,7 +202,7 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
                                         className="border-t border-slate-100 dark:border-gray-800 overflow-hidden"
                                     >
                                         <div className="p-4 flex flex-col gap-3">
-                                            {mod.items.map((trabalho: any) => (
+                                            {mod.items.map((trabalho) => (
                                                 <TrabalhoCard
                                                     key={trabalho.id}
                                                     trabalho={trabalho}
@@ -224,7 +231,7 @@ export default function FormandoTrabalhos({ trabalhos }: Props) {
     );
 }
 
-function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho: any, onSubmeter: (id: string, fd: FormData) => void, loading: boolean, moduloNome: string }) {
+function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho: MeusTrabalhos[number], onSubmeter: (id: string, fd: FormData) => void, loading: boolean, moduloNome: string }) {
     const statusConfig = {
         PENDENTE: { icon: Clock3, color: "bg-indigo-50 text-indigo-700 border-indigo-100/50", label: "Pendente" },
         ENTREGUE: { icon: CheckCircle2, color: "bg-emerald-50 text-emerald-700 border-emerald-100/50", label: "Entregue" },
@@ -286,7 +293,7 @@ function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho:
                                 {trabalho.descricao && (
                                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                                         <p className="text-xs font-semibold text-slate-600 leading-relaxed italic">
-                                            "{trabalho.descricao}"
+                                            &quot;{trabalho.descricao}&quot;
                                         </p>
                                     </div>
                                 )}
@@ -319,7 +326,7 @@ function TrabalhoCard({ trabalho, onSubmeter, loading, moduloNome }: { trabalho:
                                             <span className="text-xs font-medium text-slate-700 truncate">{trabalho.submissao.ficheiroUrl}</span>
                                         </div>
                                         {trabalho.submissao.comentario && (
-                                            <p className="text-xs text-slate-600 italic">"{trabalho.submissao.comentario}"</p>
+                                            <p className="text-xs text-slate-600 italic">&quot;{trabalho.submissao.comentario}&quot;</p>
                                         )}
                                     </div>
                                 )}

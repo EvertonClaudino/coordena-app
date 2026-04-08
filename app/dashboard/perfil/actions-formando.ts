@@ -20,7 +20,7 @@ export async function updateFormandoPerfil(
       return { sucesso: false, mensagem: 'Este email já está em uso por outro utilizador.' }
     }
 
-    const data: any = {
+    const data: { nome: string; email: string; senha?: string } = {
       nome,
       email,
     }

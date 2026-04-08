@@ -1,4 +1,7 @@
 import { auth } from "@/auth";
+import { getMeusConvites } from "../_data/formando";
+import { getConvitesPendentesFormador } from "../_data/formador";
+import { ConvitesFormando } from "./_components/convites-formando";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -8,7 +11,6 @@ import { cn } from "@/lib/utils";
 // ─── IMPORTS CORRIGIDOS ───────────────────────────────────────────────────
 // Se estes imports ainda derem erro, verifica se a tua pasta se chama
 // "componentes" ou "_components" e ajusta o caminho abaixo!
-import { ConvitesFormando } from "./_components/convites-formando";
 import { ConvitesClient } from "./convites-client";
 
 // ─── SERVER ACTION ──────────────────────────────────────────────────────────
@@ -40,6 +42,26 @@ export default async function ConvitesPage() {
     where: { email: session.user.email! },
     include: { formador: true, formando: true },
   });
+  const role = session.user.role || "FORMANDO";
+
+  // Se for FORMADOR, carrega os convites para lecionar
+  if (role === "FORMADOR") {
+    const convites = await getConvitesPendentesFormador(session.user.id);
+
+    return (
+      <div className="p-6 max-w-7xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Convites para Lecionar</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Convites para lecionar módulos nos cursos.</p>
+        </div>
+
+        <ConvitesFormando initialConvites={convites} />
+      </div>
+    );
+  }
+
+  // Se for FORMANDO, carrega os convites para estudar
+  const convites = await getMeusConvites(session.user.id);
 
   if (!user) redirect("/login");
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -185,7 +185,7 @@ const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/materiais",
     icon: BookOpen,
     roles: ["FORMADOR", "FORMANDO"],
-    group: "RECURSOS",
+    group: "APRENDIZAGEM",
   },
 
   // CONTA
@@ -239,9 +239,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
   const cfg = ROLE_CONFIG[user.role];
 
-  const visible = NAV_ITEMS.filter((item) => item.roles.includes(user.role));
+  const visible = useMemo(() => 
+    NAV_ITEMS.filter((item) => item.roles.includes(user.role)),
+  [user.role]);
 
-  const groupedItems = visible.reduce(
+  const groupedItems = useMemo(() => visible.reduce(
     (acc, item) => {
       const group = item.group || "OUTROS";
       if (!acc[group]) acc[group] = [];
@@ -249,11 +251,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
       return acc;
     },
     {} as Record<string, NavItem[]>,
-  );
+  ), [visible]);
 
-  const sortedGroups = Object.keys(groupedItems).sort((a, b) => {
+  const sortedGroups = useMemo(() => Object.keys(groupedItems).sort((a, b) => {
     return GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b);
-  });
+  }), [groupedItems]);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
@@ -266,15 +268,16 @@ export function AppSidebar({ user }: AppSidebarProps) {
     return initialState;
   });
 
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     const activeGroup = sortedGroups.find((g) =>
       groupedItems[g].some((item) => item.href === pathname),
     );
-
     if (activeGroup && !openGroups[activeGroup]) {
       setOpenGroups((prev) => ({ ...prev, [activeGroup]: true }));
     }
-  }, [pathname, sortedGroups, groupedItems, openGroups]);
+  }
 
   const toggleGroup = (groupName: string) => {
     setOpenGroups((prev) => ({ ...prev, [groupName]: !prev[groupName] }));

@@ -6,7 +6,6 @@ import {
   getFormandoStats,
   getCursoFormando,
   getProximasSessoesFormando,
-  type CursoFormando,
   type SessaoFormando,
 } from '@/app/dashboard/_data/formando'
 
@@ -111,7 +110,7 @@ export async function FormandoDashboard({ userName, userId }: { userName: string
             <Progress value={curso.progressoGeral} className="h-2 bg-gray-100 dark:bg-gray-800 [&>*]:bg-teal-400" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-              {curso.modulos.map((m: any) => (
+              {curso.modulos.map((m) => (
                 <div key={m.id} className="flex flex-col gap-1.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-3">
                   <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 leading-tight">{m.nome}</span>
                   <Progress
@@ -197,7 +196,7 @@ export async function FormandoDashboard({ userName, userId }: { userName: string
             {!curso && (
               <p className="text-sm text-gray-400 text-center py-2">Sem módulos disponíveis</p>
             )}
-            {curso?.modulos.map((mod: any) => (
+            {curso?.modulos.map((mod) => (
               <div key={mod.id} className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{mod.nome}</span>
