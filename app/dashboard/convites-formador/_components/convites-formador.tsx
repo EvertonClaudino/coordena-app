@@ -5,13 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Calendar, Clock, CheckCircle2, XCircle, ArrowRight, Loader2, Sparkles, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { responderConvite } from "../actions";
+import { responderConviteFormador } from "../actions";
 
-interface ConvitesFormandoProps {
+interface ConvitesFormadorProps {
     initialConvites: any[];
 }
 
-export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
+export function ConvitesFormador({ initialConvites }: ConvitesFormadorProps) {
     const [convites, setConvites] = useState(initialConvites);
     const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -20,10 +20,10 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
 
     async function handleResposta(id: string, acao: "ACEITE" | "RECUSADO") {
         setLoadingId(id);
-        const res = await responderConvite(id, acao);
-        
+        const res = await responderConviteFormador(id, acao);
+
         if (res.success) {
-            setConvites((prev: any) => 
+            setConvites((prev: any) =>
                 prev.map((c: any) => c.id === id ? { ...c, status: acao, dataResposta: new Date() } : c)
             );
         }
@@ -35,14 +35,14 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
             {/* Secção de Pendentes */}
             <div className="space-y-6">
                 <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-500">
+                    <div className="h-8 w-8 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center text-teal-600 dark:text-teal-500">
                         <Mail className="h-4 w-4" />
                     </div>
                     <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Convites Pendentes ({pendentes.length})</h2>
                 </div>
 
                 {pendentes.length === 0 ? (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-12 text-center"
@@ -74,7 +74,10 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
                                                 <BookOpen className="h-6 w-6" />
                                             </div>
                                             <div className="min-w-0">
-                                                <h3 className="font-bold text-gray-900 dark:text-gray-100 truncate pr-6">{convite.cursoNome || convite.Curso?.nome || 'Novo Curso'}</h3>
+                                                <h3 className="font-bold text-gray-900 dark:text-gray-100 truncate pr-6">{convite.cursoNome || 'Novo Curso'}</h3>
+                                                {convite.moduloNome && (
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{convite.moduloNome}</p>
+                                                )}
                                                 <p className="text-[10px] font-bold text-teal-600 uppercase tracking-widest leading-none mt-1">Convite Aberto</p>
                                             </div>
                                         </div>
@@ -92,8 +95,8 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
                                         </div>
 
                                         <div className="flex gap-3 pt-2">
-                                            <Button 
-                                                variant="outline" 
+                                            <Button
+                                                variant="outline"
                                                 className="flex-1 rounded-xl h-11 border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-200 dark:hover:border-red-800"
                                                 onClick={() => handleResposta(convite.id, "RECUSADO")}
                                                 disabled={loadingId === convite.id}
@@ -104,7 +107,7 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
                                                     "Recusar"
                                                 )}
                                             </Button>
-                                            <Button 
+                                            <Button
                                                 className="flex-1 rounded-xl h-11 bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/20"
                                                 onClick={() => handleResposta(convite.id, "ACEITE")}
                                                 disabled={loadingId === convite.id}
@@ -149,7 +152,10 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
                                 {historico.map((convite: any) => (
                                     <tr key={convite.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-800/40 transition-colors">
                                         <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">
-                                            {convite.cursoNome || convite.Curso?.nome || 'Curso Removido'}
+                                            {convite.cursoNome || 'Curso Removido'}
+                                            {convite.moduloNome && (
+                                                <span className="block text-xs text-gray-400 font-normal">{convite.moduloNome}</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                                             {new Date(convite.dataEnvio).toLocaleDateString()}
@@ -157,8 +163,8 @@ export function ConvitesFormando({ initialConvites }: ConvitesFormandoProps) {
                                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400 capitalize">
                                             <div className={cn(
                                                 "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold",
-                                                convite.status === "ACEITE" 
-                                                    ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-500" 
+                                                convite.status === "ACEITE"
+                                                    ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-500"
                                                     : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                                             )}>
                                                 {convite.status === "ACEITE" ? (

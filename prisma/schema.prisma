@@ -111,7 +111,6 @@ model Formador {
   avaliacoes         Avaliacao[]
   convites           Convite[]
   documentos         Documento[]
-  DocumentoFormador  DocumentoFormador[]
   modulosLecionados  FormadorModulo[]
   presencas          Presenca[]
   /// Novos: Templates de avaliação definidos por este formador
@@ -252,30 +251,20 @@ model Avaliacao {
 model Documento {
   id            String          @id @default(uuid())
   tipo          String
-  numero        String
-  dataEmissao   DateTime
-  dataExpiracao DateTime?
-  status        StatusDocumento @default(VALIDO)
-  formandoId    String
-  formadorId    String?
-  fileUrl       String?
-  createdAt     DateTime        @default(now())
-  formando      Formando        @relation(fields: [formandoId], references: [id])
-  formador      Formador?       @relation(fields: [formadorId], references: [id])
-}
-
-model DocumentoFormador {
-  id            String          @id @default(uuid())
-  tipo          String
   numero        String?
   dataEmissao   DateTime?
   dataExpiracao DateTime?
-  status        StatusDocumento @default(EM_FALTA)
-  formadorId    String
-  createdAt     DateTime        @default(now())
+  status        StatusDocumento @default(VALIDO)
+  formandoId    String?
+  formadorId    String?
   fileUrl       String?
-  Formador      Formador        @relation(fields: [formadorId], references: [id])
+  createdAt     DateTime        @default(now())
+  formando      Formando?       @relation(fields: [formandoId], references: [id])
+  formador      Formador?       @relation(fields: [formadorId], references: [id])
+
+  @@unique([formadorId, tipo], name: "formadorId_tipo")
 }
+
 
 model Convite {
   id           String        @id @default(uuid())

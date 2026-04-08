@@ -98,17 +98,20 @@ export type DocumentoEmFalta = {
 };
 
 export async function getDocumentosEmFalta(): Promise<DocumentoEmFalta[]> {
-  const docs = await prisma.documentoFormador.findMany({
-    where: { status: { in: ["EM_FALTA", "EXPIRADO", "A_EXPIRAR"] } },
-    include: { Formador: { include: { user: { select: { nome: true } } } } },
-    orderBy: [{ status: "asc" }, { dataExpiracao: "asc" }],
+  const docs = await prisma.documento.findMany({
+    where: { 
+      status: { in: ["EM_FALTA", "EXPIRADO", "A_EXPIRAR"] },
+      formadorId: { not: null }
+    },
+    include: { formador: { include: { user: { select: { nome: true } } } } },
+    orderBy: [{ status: "desc" }, { dataExpiracao: "asc" }],
     take: 6,
   });
 
   return docs.map((d) => ({
     id: d.id,
-    formadorId: d.formadorId,
-    formadorNome: d.Formador.user.nome,
+    formadorId: d.formadorId!,
+    formadorNome: d.formador?.user.nome ?? "Desconhecido",
     tipo: d.tipo,
     status: d.status as "EM_FALTA" | "EXPIRADO" | "A_EXPIRAR",
     dataExpiracao: d.dataExpiracao,
@@ -197,7 +200,7 @@ export async function getFormadorById(
           },
         },
       },
-      DocumentoFormador: {
+      documentos: {
         select: { id: true, tipo: true, status: true, dataExpiracao: true },
         orderBy: { tipo: "asc" },
       },
@@ -222,7 +225,7 @@ export async function getFormadorById(
       cargaHoraria: fm.modulo.cargaHoraria,
       curso: fm.modulo.curso,
     })),
-    documentos: formador.DocumentoFormador.map((d) => ({
+    documentos: formador.documentos.map((d) => ({
       id: d.id,
       tipo: d.tipo,
       status: d.status,

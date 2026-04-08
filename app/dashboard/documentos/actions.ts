@@ -30,27 +30,31 @@ export async function uploadDocumentoFormando(formData: FormData) {
     // Numa app real, usaríamos fs.writeFile ou um bucket S3
     const fileUrl = `/uploads/${Date.now()}-${file.name}`;
 
-    await prisma.documento.upsert({
-      where: {
-        id: formData.get("id") as string || "new-id", // Se tiver id, faz update
-      },
-      update: {
-        fileUrl,
-        numero: numero || "",
-        dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
-        dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
-        status: "VALIDO",
-      },
-      create: {
-        tipo,
-        numero: numero || "",
-        dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
-        dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
-        status: "VALIDO",
-        formandoId: formando.id,
-        fileUrl,
-      },
-    });
+    const docId = formData.get("id") as string | null;
+    if (docId) {
+      await prisma.documento.update({
+        where: { id: docId },
+        data: {
+          fileUrl,
+          numero: numero || null,
+          dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
+          dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
+          status: "VALIDO",
+        },
+      });
+    } else {
+      await prisma.documento.create({
+        data: {
+          tipo,
+          numero: numero || null,
+          dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
+          dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
+          status: "VALIDO",
+          formandoId: formando.id,
+          fileUrl,
+        },
+      });
+    }
 
     revalidatePath("/dashboard/documentos");
     return { success: true };
@@ -83,36 +87,27 @@ export async function uploadDocumentoFormador(formData: FormData) {
 
     const fileUrl = `/uploads/${Date.now()}-${file.name}`;
 
-    // Nota: O formador usa o modelo DocumentoFormador no data layer
-    // Aqui usamos upsert para criar ou atualizar
-    const existingDoc = await prisma.documentoFormador.findFirst({
-        where: { formadorId: formador.id, tipo }
-    })
-
-    if (existingDoc) {
-        await prisma.documentoFormador.update({
-            where: { id: existingDoc.id },
-            data: {
-                fileUrl,
-                dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
-                dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
-                status: "VALIDO",
-            }
-        })
-    } else {
-        await prisma.documentoFormador.create({
-            data: {
-                id: crypto.randomUUID(),
-                tipo,
-                numero: "",
-                dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
-                dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
-                status: "VALIDO",
-                formadorId: formador.id,
-                fileUrl,
-            }
-        })
-    }
+    // Usamos upsert com constraint única [formadorId, tipo] para evitar race conditions
+    await prisma.documento.upsert({
+      where: {
+        formadorId_tipo: { formadorId: formador.id, tipo },
+      },
+      update: {
+        fileUrl,
+        dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
+        dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
+        status: "VALIDO",
+      },
+      create: {
+        tipo,
+        numero: null,
+        dataEmissao: dataEmissao ? new Date(dataEmissao) : new Date(),
+        dataExpiracao: dataExpiracao ? new Date(dataExpiracao) : null,
+        status: "VALIDO",
+        formadorId: formador.id,
+        fileUrl,
+      },
+    });
 
     revalidatePath("/dashboard/documentos");
     return { success: true };

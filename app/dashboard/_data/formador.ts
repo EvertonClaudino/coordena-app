@@ -296,3 +296,30 @@ export async function getAulasFormador(userId: string) {
         moduloId: aula.modulo.id,
     }));
 }
+
+// ------------------- MEUS CONVITES (FORMADOR) -------------------
+export async function getMeusConvitesFormador(userId: string) {
+  const formador = await prisma.formador.findUnique({
+    where: { userId },
+  });
+  if (!formador) return [];
+
+  const convites = await prisma.convite.findMany({
+    where: { formadorId: formador.id },
+    include: {
+      curso: { select: { nome: true } },
+      modulo: { select: { nome: true } },
+    },
+    orderBy: { dataEnvio: "desc" },
+  });
+
+  return convites.map((c) => ({
+    id: c.id,
+    status: c.status,
+    descricao: c.descricao,
+    dataEnvio: c.dataEnvio,
+    dataResposta: c.dataResposta,
+    cursoNome: c.curso?.nome ?? null,
+    moduloNome: c.modulo?.nome ?? null,
+  }));
+}

@@ -403,8 +403,32 @@ export async function getMeusTrabalhos(userId: string) {
     )
 }
 
-// ------------------- CONVITES & REVIEWS -------------------
-export async function getMeusConvites(userId: string) { return [] }
+// ------------------- MEUS CONVITES -------------------
+export async function getMeusConvites(userId: string) {
+  const formando = await prisma.formando.findUnique({
+    where: { userId },
+  });
+  if (!formando) return [];
+
+  const convites = await prisma.convite.findMany({
+    where: { formandoId: formando.id },
+    include: {
+      curso: { select: { nome: true } },
+      modulo: { select: { nome: true } },
+    },
+    orderBy: { dataEnvio: "desc" },
+  });
+
+  return convites.map((c) => ({
+    id: c.id,
+    status: c.status,
+    descricao: c.descricao,
+    dataEnvio: c.dataEnvio,
+    dataResposta: c.dataResposta,
+    cursoNome: c.curso?.nome ?? null,
+    moduloNome: c.modulo?.nome ?? null,
+  }));
+}
 
 export async function getModulosParaReview(userId: string) {
     const formando = await prisma.formando.findUnique({
