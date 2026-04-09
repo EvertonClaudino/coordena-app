@@ -242,10 +242,10 @@ export type FormadorComDisponibilidades = FormadorComDetalhes & {
 /**
  * MODIFICADO: Busca disponibilidades de todos os formadores
  * NOVO: Agora inclui o campo 'semana' (número 1-53 da semana do ano)
- * 
+ *
  * Utilizado na página de disponibilidades do coordenador para ver
  * que horários cada formador tem marcado como disponível
- * 
+ *
  * Retorna array com formador + lista de suas disponibilidades
  */
 export async function getDisponibilidadesFormadores(): Promise<
@@ -266,7 +266,13 @@ export async function getDisponibilidadesFormadores(): Promise<
       disponibilidades: {
         where: { disponivel: true },
         // NOVO: Agora seleciona também o campo 'semana'
-        select: { diaSemana: true, hora: true, minuto: true, tipo: true, semana: true },
+        select: {
+          diaSemana: true,
+          hora: true,
+          minuto: true,
+          tipo: true,
+          semana: true,
+        },
       },
     },
     orderBy: { user: { nome: "asc" } },
@@ -281,14 +287,24 @@ export async function getDisponibilidadesFormadores(): Promise<
 // ─── Assiduidade ──────────────────────────────────────────────────────────────
 
 export async function getAssiduidadeCoordenador(): Promise<
-  AssiduidadeFormando[]
+  {
+    id: string;
+    nome: string;
+    curso: string;
+    total: number;
+    presentes: number;
+    ausentes: number;
+    justificados: number;
+  }[]
 > {
   const formandos = await prisma.formando.findMany({
     include: {
       user: { select: { nome: true } },
       inscricoes: { include: { curso: { select: { nome: true } } }, take: 1 },
       presencas: {
-        where: { status: { in: ["PRESENTE", "AUSENTE", "JUSTIFICADO"] } },
+        where: {
+          status: { in: ["PRESENTE", "AUSENTE", "JUSTIFICADO", "PENDENTE"] },
+        },
         select: { status: true },
       },
     },
@@ -301,8 +317,70 @@ export async function getAssiduidadeCoordenador(): Promise<
     curso: f.inscricoes[0]?.curso.nome ?? "Sem curso",
     total: f.presencas.length,
     presentes: f.presencas.filter((p) => p.status === "PRESENTE").length,
-    ausentes: f.presencas.filter((p) => p.status === "AUSENTE").length,
+    ausentes: f.presencas.filter(
+      (p) => p.status === "AUSENTE" || p.status === "PENDENTE",
+    ).length,
     justificados: f.presencas.filter((p) => p.status === "JUSTIFICADO").length,
+  }));
+}
+
+export type JustificativaPendente = {
+  id: string;
+  status: string;
+  comentarioFormando: string | null;
+  documentoUrl: string | null;
+  aula: {
+    id: string;
+    titulo: string;
+    dataHora: Date;
+    modulo: { nome: string };
+  };
+  formando: {
+    id: string;
+    user: { nome: string };
+    curso: string | null;
+  };
+};
+
+export async function getJustificativasPendentesCoordenador(): Promise<
+  JustificativaPendente[]
+> {
+  const presencas = await prisma.presenca.findMany({
+    where: { status: "PENDENTE" },
+    include: {
+      aula: {
+        select: {
+          id: true,
+          titulo: true,
+          dataHora: true,
+          modulo: { select: { nome: true } },
+        },
+      },
+      formando: {
+        select: {
+          id: true,
+          user: { select: { nome: true } },
+          inscricoes: {
+            include: { curso: { select: { nome: true } } },
+            take: 1,
+          },
+        },
+      },
+    },
+    orderBy: { aula: { dataHora: "desc" } },
+  });
+
+  return presencas.map((p) => ({
+    id: p.id,
+    status: p.status,
+    comentarioFormando: p.comentarioFormando,
+    documentoUrl: p.documentoUrl,
+    aula: p.aula,
+    formando: {
+      id: p.formando.id,
+      user: p.formando.user,
+      curso: p.formando.inscricoes[0]?.curso?.nome ?? null,
+    },
   }));
 }
 
