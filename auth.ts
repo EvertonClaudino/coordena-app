@@ -1,12 +1,10 @@
 import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-    adapter: PrismaAdapter(prisma) as import("@auth/core/adapters").Adapter,
-    session: { strategy: 'jwt' },
+    session: { strategy: 'jwt', maxAge: 8 * 60 * 60 },
     providers: [
         Credentials({
             name: 'credentials',
@@ -19,6 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email as string },
+                    select: { id: true, nome: true, email: true, role: true, image: true, senha: true }
                 })
 
                 if (!user || !user.senha) return null
@@ -30,12 +29,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 if (!passwordMatch) return null
 
+                // Retorna apenas campos essenciais — mínimo para JWT pequeno
                 return {
                     id: user.id,
                     name: user.nome,
                     email: user.email,
                     role: user.role,
-                    image: user.image,
                 }
             },
         }),
@@ -43,30 +42,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.id = user.id
-                token.role = (user as { role?: string }).role
-                token.picture = user.image
-                
-                // Se o usuário é um coordenador, buscar e armazenar coordenadorId
-                if ((user as { role?: string }).role === 'COORDENADOR') {
-                    const { prisma } = await import('@/lib/prisma')
-                    const coordenador = await prisma.coordenador.findUnique({
-                        where: { userId: user.id },
-                        select: { id: true }
-                    })
-                    if (coordenador) {
-                        token.coordenadorId = coordenador.id
-                    }
+                return {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    coordenadorId: null,
                 }
             }
             return token
         },
         async session({ session, token }) {
-            if (token) {
-                session.user.id = token.id as string
-                session.user.role = token.role as "COORDENADOR" | "FORMADOR" | "FORMANDO"
-                session.user.image = token.picture as string | undefined | null
-                session.user.coordenadorId = token.coordenadorId as string | undefined
+            session.user = {
+                id: token.id as string,
+                name: token.name as string,
+                email: token.email as string,
+                role: token.role as "COORDENADOR" | "FORMADOR" | "FORMANDO",
+                coordenadorId: token.coordenadorId as string | undefined,
             }
             return session
         },

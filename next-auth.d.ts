@@ -10,6 +10,9 @@ declare module 'next-auth' {
     }
 
     interface User {
+        id: string
+        name?: string | null
+        email?: string | null
         role: 'COORDENADOR' | 'FORMADOR' | 'FORMANDO'
     }
 }
@@ -18,6 +21,6 @@ declare module 'next-auth/jwt' {
     interface JWT {
         id: string
         role: 'COORDENADOR' | 'FORMADOR' | 'FORMANDO'
-        coordenadorId?: string
+        coordenadorId?: string | null
     }
 }

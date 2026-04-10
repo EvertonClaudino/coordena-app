@@ -1,6 +1,7 @@
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
 
 /**
  * Obtém o coordenador logado a partir da sessão atual.
@@ -53,7 +54,7 @@ export async function getCoordenadorLogado() {
  * 
  * @returns O ID do coordenador logado ou null se não for coordenador
  */
-export async function getCoordenadorIdOrNull(): Promise<string | null> {
+export const getCoordenadorIdOrNull = cache(async (): Promise<string | null> => {
   const session = await auth()
   
   if (!session?.user || session.user.role !== 'COORDENADOR') {
@@ -70,7 +71,7 @@ export async function getCoordenadorIdOrNull(): Promise<string | null> {
   })
 
   return coordenador?.id || null
-}
+})
 
 /**
  * Verifica se um curso pertence ao coordenador logado.
@@ -106,8 +107,8 @@ export async function filtroCursosCoordenador(where: Record<string, any> = {}) {
   const coordenadorId = await getCoordenadorIdOrNull()
   
   if (!coordenadorId) {
-    // Se não é coordenador, retorna filtro que não encontra nada
-    return { ...where, coordenadorId: null }
+    // Se não é coordenador, retorna filtro que não encontra nada (ID inexistente)
+    return { ...where, id: '00000000-0000-0000-0000-000000000000' }
   }
 
   return { ...where, coordenadorId }
@@ -124,7 +125,7 @@ export async function filtroInscricoesCoordenador(where: Record<string, any> = {
   const coordenadorId = await getCoordenadorIdOrNull()
   
   if (!coordenadorId) {
-    return { ...where, curso: { coordenadorId: null } }
+    return { ...where, curso: { id: '00000000-0000-0000-0000-000000000000' } }
   }
 
   return { ...where, curso: { coordenadorId } }
@@ -141,7 +142,7 @@ export async function filtroModulosCoordenador(where: Record<string, any> = {}) 
   const coordenadorId = await getCoordenadorIdOrNull()
   
   if (!coordenadorId) {
-    return { ...where, curso: { coordenadorId: null } }
+    return { ...where, curso: { id: '00000000-0000-0000-0000-000000000000' } }
   }
 
   return { ...where, curso: { coordenadorId } }
@@ -158,7 +159,7 @@ export async function filtroFormadoresCoordenador(where: Record<string, any> = {
   const coordenadorId = await getCoordenadorIdOrNull()
   
   if (!coordenadorId) {
-    return { ...where, modulosLecionados: { some: { modulo: { curso: { coordenadorId: null } } } } }
+    return { ...where, modulosLecionados: { some: { modulo: { curso: { id: '00000000-0000-0000-0000-000000000000' } } } } }
   }
 
   return { ...where, modulosLecionados: { some: { modulo: { curso: { coordenadorId } } } } }
@@ -175,7 +176,7 @@ export async function filtroFormandosCoordenador(where: Record<string, any> = {}
   const coordenadorId = await getCoordenadorIdOrNull()
   
   if (!coordenadorId) {
-    return { ...where, inscricoes: { some: { curso: { coordenadorId: null } } } }
+    return { ...where, inscricoes: { some: { curso: { id: '00000000-0000-0000-0000-000000000000' } } } }
   }
 
   return { ...where, inscricoes: { some: { curso: { coordenadorId } } } }

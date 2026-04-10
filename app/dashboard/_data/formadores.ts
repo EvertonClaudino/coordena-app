@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { filtroFormadoresCoordenador, filtroModulosCoordenador } from "@/lib/coordenador-utils";
+import { filtroFormadoresCoordenador, filtroModulosCoordenador, getCoordenadorIdOrNull } from "@/lib/coordenador-utils";
 
 // Buscar todos os formadores do coordenador logado
 export async function getFormadores() {
@@ -22,7 +22,7 @@ export async function getFormadores() {
 // Buscar formador por ID (apenas se pertencer aos cursos do coordenador)
 export async function getFormadorById(id: string) {
   const modulosFilter = await filtroModulosCoordenador();
-  const coordenadorId = await import('@/lib/coordenador-utils').then(m => m.getCoordenadorIdOrNull());
+  const coordenadorId = await getCoordenadorIdOrNull();
   
   const formador = await prisma.formador.findUnique({
     where: { id },

@@ -16,11 +16,31 @@ import { ConvitesClient } from "./convites-client";
 // ─── SERVER ACTION ──────────────────────────────────────────────────────────
 async function criarConvite(formData: FormData) {
   "use server";
+  
+  const session = await auth();
+  if (!session?.user || session.user.role !== "COORDENADOR") {
+    return;
+  }
+
   const descricao = formData.get("descricao") as string;
   const formadorId = formData.get("formadorId") as string;
   const cursoId = formData.get("cursoId") as string;
 
   if (!descricao || !formadorId || !cursoId) return;
+
+  // Verificar se o curso pertence ao coordenador logado
+  const coordenador = await prisma.coordenador.findUnique({
+    where: { userId: session.user.id }
+  });
+
+  if (!coordenador) return;
+
+  const curso = await prisma.curso.findUnique({
+    where: { id: cursoId },
+    select: { coordenadorId: true }
+  });
+
+  if (!curso || curso.coordenadorId !== coordenador.id) return;
 
   await prisma.convite.create({
     data: {
@@ -43,22 +63,6 @@ export default async function ConvitesPage() {
     include: { formador: true, formando: true },
   });
   const role = session.user.role || "FORMANDO";
-
-  // Se for FORMADOR, carrega os convites para lecionar
-  if (role === "FORMADOR") {
-    const convites = await getConvitesPendentesFormador(session.user.id);
-
-    return (
-      <div className="p-6 max-w-7xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Convites para Lecionar</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Convites para lecionar módulos nos cursos.</p>
-        </div>
-
-        <ConvitesFormando initialConvites={convites} />
-      </div>
-    );
-  }
 
   // Se for FORMANDO, carrega os convites para estudar
   const convites = await getMeusConvites(session.user.id);
