@@ -596,3 +596,73 @@ export async function obterNotasFinais() {
     return { success: false, error: message, notasFinais: {} };
   }
 }
+
+/**
+ * Obter trabalhos entregues por um aluno num módulo
+ * 
+ * @param formandoId - ID do aluno
+ * @param moduloId - ID do módulo
+ * @returns Array de items com status de entrega
+ */
+export async function obterTrabalhosPorAluno(
+  formandoId: string,
+  moduloId: string
+) {
+  try {
+    // Validar autenticação
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('Não autorizado');
+    }
+
+    // Buscar template do módulo
+    const template = await prisma.templateAvaliacao.findFirst({
+      where: {
+        moduloId: moduloId,
+      },
+      include: {
+        items: {
+          orderBy: { ordem: 'asc' },
+        },
+      },
+    });
+
+    if (!template) {
+      return { success: true, trabalhos: [] };
+    }
+
+    // Buscar submissões do aluno
+    const submissoes = await prisma.submissaoTrabalho.findMany({
+      where: {
+        formandoId: formandoId,
+        item: {
+          templateId: template.id,
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    // Mapear items com status de entrega
+    const trabalhos = template.items.map((item) => {
+      const submissao = submissoes.find((sub) => sub.itemId === item.id);
+      return {
+        itemId: item.id,
+        nome: item.nome,
+        ordem: item.ordem,
+        peso: item.peso,
+        entregue: !!submissao,
+        dataEntrega: submissao?.dataEntrega?.toISOString() || null,
+        ficheiro: submissao?.ficheiroUrl || null,
+        comentario: submissao?.comentario || null,
+      };
+    });
+
+    return { success: true, trabalhos };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('Erro ao obter trabalhos:', message);
+    return { success: false, error: message, trabalhos: [] };
+  }
+}

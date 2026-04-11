@@ -19,7 +19,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Search, Plus, Save } from 'lucide-react';
+import { Search, Plus, Save, Eye, Download, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { TemplateAvaliacoeModal } from './template-avaliacoes-modal';
@@ -30,6 +30,7 @@ import {
   calcularNotaFinal,
   obterModulosComAlunos,
   obterNotasFinais,
+  obterTrabalhosPorAluno,
 } from '../actions';
 import { cn } from '@/lib/utils';
 
@@ -68,10 +69,30 @@ interface NotasFinaisState {
   [formandoId: string]: number | null;
 }
 
+interface Trabalho {
+  itemId: string;
+  nome: string;
+  ordem: number;
+  peso: number;
+  entregue: boolean;
+  dataEntrega: string | null;
+  ficheiro: string | null;
+  comentario: string | null;
+}
+
+interface AlunoSelecionado {
+  alunoId: string;
+  alunoNome: string;
+  moduloId: string;
+}
+
 export default function FormadorNotasPage() {
   const [search, setSearch] = useState('');
   const [saved, setSaved] = useState(false);
   const [modulos, setModulos] = useState<Modulo[]>([]);
+  const [alunoSelecionado, setAlunoSelecionado] = useState<AlunoSelecionado | null>(null);
+  const [trabalhos, setTrabalhos] = useState<Trabalho[]>([]);
+  const [carregandoTrabalhos, setCarregandoTrabalhos] = useState(false);
   const [templates, setTemplates] = useState<Record<string, Template | null>>({});
   const [notas, setNotas] = useState<NotasState>({});
   const [notasFinais, setNotasFinais] = useState<NotasFinaisState>({});
@@ -299,6 +320,32 @@ export default function FormadorNotasPage() {
   }
 
   /**
+   * Abrir popup com trabalhos do aluno
+   */
+  async function abrirTrabalhos(alunoId: string, alunoNome: string, moduloId: string) {
+    setAlunoSelecionado({ alunoId, alunoNome, moduloId });
+    setCarregandoTrabalhos(true);
+    try {
+      const resultado = await obterTrabalhosPorAluno(alunoId, moduloId);
+      if (resultado.success) {
+        setTrabalhos(resultado.trabalhos);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar trabalhos:', error);
+    } finally {
+      setCarregandoTrabalhos(false);
+    }
+  }
+
+  /**
+   * Fechar popup de trabalhos
+   */
+  function fecharTrabalhos() {
+    setAlunoSelecionado(null);
+    setTrabalhos([]);
+  }
+
+  /**
    * Quando template é salvo, recarregar
    */
   function aoSalvarTemplate() {
@@ -443,7 +490,18 @@ export default function FormadorNotasPage() {
                           <tr key={aluno.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
                             {/* Nome do aluno */}
                             <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {aluno.nome}
+                              <div className="flex items-center gap-2">
+                                {aluno.nome}
+                                {template && (
+                                  <button
+                                    onClick={() => abrirTrabalhos(aluno.id, aluno.nome, modulo.id)}
+                                    className="p-1 text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    title="Ver trabalhos entregues"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
 
                             {/* Presenças */}
@@ -543,6 +601,93 @@ export default function FormadorNotasPage() {
           moduloNome={modulos.find((m) => m.id === modalModuloId)?.nome || ''}
           onSuccess={aoSalvarTemplate}
         />
+      )}
+
+      {/* Modal de Trabalhos */}
+      {alunoSelecionado && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-md w-full mx-4">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Trabalhos Entregues</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{alunoSelecionado.alunoNome}</p>
+              </div>
+              <button
+                onClick={fecharTrabalhos}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500 hover:text-gray-700 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {carregandoTrabalhos ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">A carregar...</p>
+                </div>
+              ) : trabalhos.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Nenhum trabalho definido para este módulo</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {trabalhos.map((trabalho) => (
+                    <div
+                      key={trabalho.itemId}
+                      className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100">{trabalho.nome}</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Peso: {trabalho.peso}%
+                          </p>
+                          {trabalho.entregue ? (
+                            <>
+                              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                ✓ Entregue em {new Date(trabalho.dataEntrega!).toLocaleDateString('pt-PT')}
+                              </p>
+                              {trabalho.comentario && (
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 italic">
+                                  "{trabalho.comentario}"
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">✗ Não entregue</p>
+                          )}
+                        </div>
+                        {trabalho.entregue && trabalho.ficheiro && (
+                          <a
+                            href={trabalho.ficheiro}
+                            download
+                            className="p-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
+                            title="Descarregar ficheiro"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+              <button
+                onClick={fecharTrabalhos}
+                className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg font-medium transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
