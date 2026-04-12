@@ -49,11 +49,46 @@ const NACIONALIDADES = [
   'Outro'
 ]
 
+const COMPETENCIAS = [
+  'Python',
+  'JavaScript',
+  'TypeScript',
+  'Java',
+  'C#',
+  'C++',
+  'PHP',
+  'Ruby',
+  'Go',
+  'Rust',
+  'SQL',
+  'PostgreSQL',
+  'MongoDB',
+  'React',
+  'Vue.js',
+  'Angular',
+  'Node.js',
+  'Docker',
+  'Kubernetes',
+  'AWS',
+  'Azure',
+  'Git',
+  'CI/CD',
+  'TDD',
+  'Agile',
+  'Scrum',
+  'HTML',
+  'CSS',
+  'REST API',
+  'GraphQL',
+  'Outro'
+]
+
 export function PerfilClient({ formador }: { formador: FormadorData }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [especialidade, setEspecialidade] = useState(formador.especialidade)
-  const [newCompetencia, setNewCompetencia] = useState('')
+  const [selectedCompetencia, setSelectedCompetencia] = useState('')
+  const [customCompetencia, setCustomCompetencia] = useState('')
   const [competencias, setCompetencias] = useState<string[]>(
     formador.competencias ? formador.competencias.split(',').map(t => t.trim()) : []
   )
@@ -65,11 +100,19 @@ export function PerfilClient({ formador }: { formador: FormadorData }) {
   const [loading, setLoading] = useState(false)
 
   function addCompetencia() {
-    const c = newCompetencia.trim()
-    if (c && !competencias.includes(c)) {
-      setCompetencias((prev) => [...prev, c])
+    let competenciaAdicionar = ''
+    
+    if (selectedCompetencia === 'Outro') {
+      competenciaAdicionar = customCompetencia.trim()
+    } else {
+      competenciaAdicionar = selectedCompetencia.trim()
     }
-    setNewCompetencia('')
+    
+    if (competenciaAdicionar && !competencias.includes(competenciaAdicionar)) {
+      setCompetencias((prev) => [...prev, competenciaAdicionar])
+      setSelectedCompetencia('')
+      setCustomCompetencia('')
+    }
   }
 
   function removeCompetencia(competencia: string) {
@@ -114,7 +157,8 @@ export function PerfilClient({ formador }: { formador: FormadorData }) {
     setCompetencias(
       formador.competencias ? formador.competencias.split(',').map(t => t.trim()) : []
     )
-    setNewCompetencia('')
+    setSelectedCompetencia('')
+    setCustomCompetencia('')
     setLinkedin(formador.linkedin)
     setGithub(formador.github)
     setIdioma(formador.idioma)
@@ -194,16 +238,36 @@ export function PerfilClient({ formador }: { formador: FormadorData }) {
               </div>
 
               <div className="flex gap-2">
-                <Input
-                  value={newCompetencia}
-                  onChange={(e) => setNewCompetencia(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCompetencia())}
-                  placeholder="Ex: Python, SQL, etc..."
-                  className="rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 text-sm focus-visible:ring-purple-500"
-                />
+                <select
+                  value={selectedCompetencia}
+                  onChange={(e) => {
+                    setSelectedCompetencia(e.target.value)
+                    if (e.target.value !== 'Outro') {
+                      setCustomCompetencia('')
+                    }
+                  }}
+                  className="flex-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Selecione uma competência</option>
+                  {COMPETENCIAS.map((comp) => (
+                    <option key={comp} value={comp}>
+                      {comp}
+                    </option>
+                  ))}
+                </select>
+                {selectedCompetencia === 'Outro' && (
+                  <Input
+                    value={customCompetencia}
+                    onChange={(e) => setCustomCompetencia(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCompetencia())}
+                    placeholder="Digite a competência..."
+                    className="flex-1 rounded-xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 text-sm focus-visible:ring-purple-500"
+                  />
+                )}
                 <button
                   onClick={addCompetencia}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  disabled={!selectedCompetencia || (selectedCompetencia === 'Outro' && !customCompetencia.trim())}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
