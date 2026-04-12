@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 
 export async function POST(req: Request) {
     try {
-        const { nome, email, senha, role } = await req.json()
+        const { nome, email, senha, role, codigoCoordenador } = await req.json()
 
         if (!nome || !email || !senha || !role) {
             return NextResponse.json(
@@ -13,20 +13,24 @@ export async function POST(req: Request) {
             )
         }
 
-        if (role === "COORDENADOR") {
-            return NextResponse.json(
-                { error: "Registro de coordenador requer token especial" },
-                { status: 403 },
-            );
-        }
-
         // Validar role
-        const validRoles = ['FORMADOR', 'FORMANDO'] as const;
+        const validRoles = ['COORDENADOR', 'FORMADOR', 'FORMANDO'] as const;
         if (!validRoles.includes(role)) {
             return NextResponse.json(
-                { error: 'Role inválido. Use: FORMADOR ou FORMANDO.' },
+                { error: 'Role inválido. Use: COORDENADOR, FORMADOR ou FORMANDO.' },
                 { status: 400 }
             )
+        }
+
+        // Se for Coordenador, exige código de segurança
+        if (role === 'COORDENADOR') {
+            const codigoEsperado = process.env.COORDENADOR_REGISTRATION_CODE || 'COORD-2026-SECRET';
+            if (codigoCoordenador !== codigoEsperado) {
+                return NextResponse.json(
+                    { error: 'Código de coordenador inválido. Contacte o administrador.' },
+                    { status: 403 },
+                );
+            }
         }
 
         const userExistente = await prisma.user.findUnique({
@@ -54,6 +58,9 @@ export async function POST(req: Request) {
                 }),
                 ...(role === 'FORMANDO' && {
                     formando: { create: {} },
+                }),
+                ...(role === 'COORDENADOR' && {
+                    coordenador: { create: {} },
                 }),
             },
         })

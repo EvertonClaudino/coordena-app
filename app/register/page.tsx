@@ -60,6 +60,7 @@ export default function RegisterPage() {
     senha: "",
     confirmarSenha: "",
   });
+  const [codigoCoordenador, setCodigoCoordenador] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,6 +134,7 @@ export default function RegisterPage() {
           email: formData.email,
           senha: formData.senha,
           role: selectedRole?.toUpperCase(),
+          codigoCoordenador: selectedRole === "coordenador" ? codigoCoordenador : undefined,
         }),
       });
 
@@ -318,6 +320,29 @@ export default function RegisterPage() {
                 </div>
                 {errors.role && <p className="text-red-500 text-xs ml-1">{errors.role}</p>}
               </div>
+
+              {/* Código de Coordenador */}
+              {selectedRole === "coordenador" && (
+                <div className="space-y-2">
+                  <Label htmlFor="codigoCoordenador" className="text-slate-700 dark:text-slate-300 ml-1">
+                    Código de Coordenador
+                  </Label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <Input
+                      id="codigoCoordenador"
+                      name="codigoCoordenador"
+                      type="password"
+                      placeholder="Código fornecido pelo administrador"
+                      required
+                      className="pl-12 h-12 rounded-2xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:ring-4 focus:ring-indigo-500/10 transition-all text-[15px]"
+                      value={codigoCoordenador}
+                      onChange={(e) => setCodigoCoordenador(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-slate-400 text-xs ml-1">Contacte o administrador para obter o código</p>
+                </div>
+              )}
 
               {errors.submit && (
                 <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-600">
