@@ -121,7 +121,7 @@ export async function CoordenadorDashboard({ userName }: { userName: string }) {
               <Clock className="h-4 w-4 text-indigo-500" /> Próximas Sessões
             </h2>
             <Link
-              href="/calendario"
+              href="/dashboard/calendario"
               className="flex items-center gap-1 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors"
             >
               Ver calendário <ArrowRight className="h-3.5 w-3.5" />
@@ -280,9 +280,18 @@ export async function CoordenadorDashboard({ userName }: { userName: string }) {
 
 function DocStatusBadge({ status }: { status: DocumentoEmFalta["status"] }) {
   const map = {
-    EM_FALTA: { label: "Em falta", cls: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400" },
-    EXPIRADO: { label: "Expirado", cls: "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400" },
-    A_EXPIRAR: { label: "A expirar", cls: "bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400" },
+    EM_FALTA: {
+      label: "Em falta",
+      cls: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+    },
+    EXPIRADO: {
+      label: "Expirado",
+      cls: "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400",
+    },
+    A_EXPIRAR: {
+      label: "A expirar",
+      cls: "bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400",
+    },
   } as const;
 
   const { label, cls } = map[status];

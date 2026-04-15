@@ -158,8 +158,19 @@ function NovaSessaoDialog({
       return;
     }
 
+    const [year, month, day] = form.data.split("-").map(Number);
+    const [hours, minutes] = form.hora.split(":").map(Number);
+    const dataHoraEscolhida = new Date(
+      year,
+      month - 1,
+      day,
+      hours,
+      minutes,
+      0,
+      0,
+    );
+
     // Validação: não permitir datas/horas passadas
-    const dataHoraEscolhida = new Date(`${form.data}T${form.hora}:00`);
     if (dataHoraEscolhida <= new Date()) {
       setErro("Não é possível criar sessões em datas ou horários passados.");
       return;
@@ -424,7 +435,9 @@ export default function CoordenadorCalendario() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100">Calendário</h1>
+          <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100">
+            Calendário
+          </h1>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
             {aulasMes.length} sessão(ões) este mês
           </p>
@@ -445,7 +458,10 @@ export default function CoordenadorCalendario() {
               aria-label="Mês anterior"
               className="flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <ChevronLeft className="h-4 w-4 text-gray-600" aria-hidden="true" />
+              <ChevronLeft
+                className="h-4 w-4 text-gray-600"
+                aria-hidden="true"
+              />
             </button>
             <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
               {MONTHS[viewMonth]} {viewYear}
@@ -455,7 +471,10 @@ export default function CoordenadorCalendario() {
               aria-label="Mês seguinte"
               className="flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <ChevronRight className="h-4 w-4 text-gray-600" aria-hidden="true" />
+              <ChevronRight
+                className="h-4 w-4 text-gray-600"
+                aria-hidden="true"
+              />
             </button>
           </div>
 
@@ -562,8 +581,8 @@ export default function CoordenadorCalendario() {
                       </div>
                       <div className="flex flex-wrap gap-y-2 gap-x-3 text-xs opacity-80 min-w-0">
                         <span className="flex items-center gap-1 truncate">
-                          <Clock className="h-3 w-3 shrink-0" /> {formatTime(aula)} ·{" "}
-                          {formatDuracao(aula.duracao)}
+                          <Clock className="h-3 w-3 shrink-0" />{" "}
+                          {formatTime(aula)} · {formatDuracao(aula.duracao)}
                         </span>
                         <span className="flex items-center gap-1 truncate">
                           <Users className="h-3 w-3 shrink-0" />{" "}
