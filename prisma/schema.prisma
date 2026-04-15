@@ -51,18 +51,18 @@ enum StatusConvite {
 /// MODELOS BASE
 /// ========================================================
 model User {
-  id        String    @id @default(uuid())
-  nome      String
-  telefone  String?
-  email     String    @unique
-  senha     String?
-  image     String?
-  role      Role      @default(FORMANDO)
-  createdAt DateTime  @default(now())
-  accounts  Account[]
-  sessions  Session[]
-  formador  Formador?
-  formando  Formando?
+  id          String       @id @default(uuid())
+  nome        String
+  telefone    String?
+  email       String       @unique
+  senha       String?
+  image       String?
+  role        Role         @default(FORMANDO)
+  createdAt   DateTime     @default(now())
+  accounts    Account[]
+  sessions    Session[]
+  formador    Formador?
+  formando    Formando?
   coordenador Coordenador?
 }
 
@@ -104,17 +104,17 @@ model VerificationToken {
 /// MODELOS PRINCIPAIS
 /// ========================================================
 model Formador {
-  id            String  @id @default(uuid())
-  especialidade String?
-  competencias  String?
-  linkedin      String?
-  github        String?
-  idioma        String?
-  nacionalidade String?
-  userId        String  @unique
+  id                     String       @id @default(uuid())
+  especialidade          String?
+  competencias           String?
+  linkedin               String?
+  github                 String?
+  idioma                 String?
+  nacionalidade          String?
+  userId                 String       @unique
   criadoPorCoordenadorId String?
-  user          User    @relation(fields: [userId], references: [id])
-  criadoPorCoordenador Coordenador? @relation("FormadoresCriados", fields: [criadoPorCoordenadorId], references: [id], onDelete: SetNull)
+  user                   User         @relation(fields: [userId], references: [id])
+  criadoPorCoordenador   Coordenador? @relation("FormadoresCriados", fields: [criadoPorCoordenadorId], references: [id], onDelete: SetNull)
 
   aulas              Aula[]
   avaliacoes         Avaliacao[]
@@ -124,7 +124,7 @@ model Formador {
   presencas          Presenca[]
   templatesAvaliacao TemplateAvaliacao[]
   disponibilidades   Disponibilidade[]
-  materiaisApoio    MaterialApoio[]
+  materiaisApoio     MaterialApoio[]
 }
 
 model Disponibilidade {
@@ -156,29 +156,30 @@ model Formando {
 }
 
 model Coordenador {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id])
-  cursos        Curso[]
+  id                String     @id @default(uuid())
+  userId            String     @unique
+  user              User       @relation(fields: [userId], references: [id])
+  cursos            Curso[]
   formadoresCriados Formador[] @relation("FormadoresCriados")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  modulosCriados    Modulo[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
 
 model Curso {
-  id             String      @id @default(uuid())
-  nome           String
-  descricao      String?
-  status         StatusCurso @default(ATIVO)
-  createdAt      DateTime    @default(now())
-  cargaHoraria   Int         @default(0)
-  dataFim        DateTime?
-  dataInicio     DateTime?
-  coordenadorId  String?
-  coordenador    Coordenador? @relation(fields: [coordenadorId], references: [id], onDelete: SetNull)
-  inscricoes     Inscricao[]
-  modulos        Modulo[]
-  convites       Convite[]
+  id            String       @id @default(uuid())
+  nome          String
+  descricao     String?
+  status        StatusCurso  @default(ATIVO)
+  createdAt     DateTime     @default(now())
+  cargaHoraria  Int          @default(0)
+  dataFim       DateTime?
+  dataInicio    DateTime?
+  coordenadorId String?
+  coordenador   Coordenador? @relation(fields: [coordenadorId], references: [id], onDelete: SetNull)
+  inscricoes    Inscricao[]
+  modulos       Modulo[]
+  convites      Convite[]
 }
 
 model Modulo {
@@ -186,13 +187,15 @@ model Modulo {
   nome               String
   descricao          String?
   ordem              Int
-  cursoId            String
+  cursoId            String?
   cargaHoraria       Int                 @default(0)
   aulas              Aula[]
   avaliacoes         Avaliacao[]
   formadores         FormadorModulo[]
   templatesAvaliacao TemplateAvaliacao[]
-  curso              Curso               @relation(fields: [cursoId], references: [id])
+  coordenadorId      String?
+  curso              Curso?               @relation(fields: [cursoId], references: [id])
+  coordenador        Coordenador?         @relation(fields: [coordenadorId], references: [id])
   reviews            ReviewModulo[]
   convites           Convite[]
   materiais          MaterialApoio[]
@@ -283,7 +286,6 @@ model Documento {
   @@unique([formadorId, tipo], name: "formadorId_tipo")
 }
 
-
 model Convite {
   id           String        @id @default(uuid())
   formadorId   String?
@@ -296,10 +298,10 @@ model Convite {
   dataResposta DateTime?
   createdAt    DateTime      @default(now())
 
-  formador     Formador?     @relation(fields: [formadorId], references: [id], onDelete: Cascade)
-  formando     Formando?     @relation(fields: [formandoId], references: [id], onDelete: Cascade)
-  curso        Curso?        @relation(fields: [cursoId], references: [id])
-  modulo       Modulo?       @relation(fields: [moduloId], references: [id])
+  formador Formador? @relation(fields: [formadorId], references: [id], onDelete: Cascade)
+  formando Formando? @relation(fields: [formandoId], references: [id], onDelete: Cascade)
+  curso    Curso?    @relation(fields: [cursoId], references: [id])
+  modulo   Modulo?   @relation(fields: [moduloId], references: [id])
 }
 
 /// ========================================================
@@ -386,18 +388,18 @@ model ReviewModulo {
 }
 
 model MaterialApoio {
-  id           String   @id @default(uuid())
-  titulo       String
-  descricao    String?
-  fileUrl      String
-  tipo         String?
-  moduloId     String
-  formadorId   String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id         String   @id @default(uuid())
+  titulo     String
+  descricao  String?
+  fileUrl    String
+  tipo       String?
+  moduloId   String
+  formadorId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  modulo       Modulo   @relation(fields: [moduloId], references: [id], onDelete: Cascade)
-  formador     Formador @relation(fields: [formadorId], references: [id], onDelete: Cascade)
+  modulo   Modulo   @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  formador Formador @relation(fields: [formadorId], references: [id], onDelete: Cascade)
 
   @@index([moduloId])
   @@index([formadorId])

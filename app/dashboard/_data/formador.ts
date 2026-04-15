@@ -71,7 +71,7 @@ export async function getProximasSessoesFormador(userId: string) {
 
     return aulas.map((aula: (typeof aulas)[0]) => ({
         id: aula.id,
-        titulo: `${aula.modulo.curso.nome} · ${aula.titulo}`,
+        titulo: `${aula.modulo.curso?.nome || "Módulo Geral"} · ${aula.titulo}`,
         dataHora: aula.dataHora,
         duracao: aula.duracao,
     }));
@@ -169,7 +169,9 @@ export async function getModulosAtribuidosFormador(userId: string) {
     if (!formador) return [];
 
     // Query unica: buscar todas as inscricoes de todos os cursos de uma vez
-    const cursoIds = formador.modulosLecionados.map((fm) => fm.modulo.curso.id);
+    const cursoIds = formador.modulosLecionados
+        .map((fm) => fm.modulo.curso?.id)
+        .filter((id): id is string => !!id);
     const todasInscricoes = await prisma.inscricao.findMany({
         where: { cursoId: { in: cursoIds } },
         include: {
@@ -190,13 +192,15 @@ export async function getModulosAtribuidosFormador(userId: string) {
     }
 
     const modulosComFormandos = formador.modulosLecionados.map((fm) => {
-        const inscricoes = inscricoesPorCurso.get(fm.modulo.curso.id) || [];
+        const inscricoes = fm.modulo.curso?.id 
+            ? (inscricoesPorCurso.get(fm.modulo.curso.id) || [])
+            : [];
 
         return {
             id: fm.modulo.id,
             nome: fm.modulo.nome,
             codigo: fm.modulo.id.substring(0, 8).toUpperCase(),
-            curso: fm.modulo.curso.nome,
+            curso: fm.modulo.curso?.nome || "Sem curso",
             tags: [],
             formandos: inscricoes.length,
             status: 'Ativo' as const,
@@ -240,7 +244,7 @@ export async function getModulosComAlunos(userId: string) {
         formador.modulosLecionados.map(async (fm) => {
             // Obter alunos inscritos neste curso
             const inscricoes = await prisma.inscricao.findMany({
-                where: { cursoId: fm.modulo.curso.id },
+                where: { cursoId: fm.modulo.curso?.id || "N/A" },
                 include: {
                     formando: {
                         include: {

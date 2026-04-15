@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Star, Users, Mail, Loader2 } from "lucide-react";
+import { Plus, Search, Star, Users, Mail, Loader2, Puzzle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -214,7 +214,7 @@ function EnviarConviteDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cursoId, setCursoId] = useState("");
-  const [moduloId, setModuloId] = useState("");
+  const [selectedModulos, setSelectedModulos] = useState<string[]>([]);
   const [descricao, setDescricao] = useState("");
   const [cursos, setCursos] = useState<{ id: string; nome: string }[]>([]);
   const [modulos, setModulos] = useState<{ id: string; nome: string }[]>([]);
@@ -232,42 +232,79 @@ function EnviarConviteDialog({
     if (cursoId) {
       fetch(`/api/cursos/${cursoId}/modulos`)
         .then((r) => r.json())
-        .then((data) => setModulos(data))
+        .then((data) => {
+          setModulos(data);
+          setSelectedModulos([]); // Reset selection on curso change
+        })
         .catch(() => setModulos([]));
-      setModuloId("");
     } else {
       setModulos([]);
-      setModuloId("");
+      setSelectedModulos([]);
     }
   }, [cursoId]);
+
+  function toggleModulo(id: string) {
+    setSelectedModulos((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
+    );
+  }
+
+  function toggleAll() {
+    if (selectedModulos.length === modulos.length) {
+      setSelectedModulos([]);
+    } else {
+      setSelectedModulos(modulos.map((m) => m.id));
+    }
+  }
 
   async function handleSubmit() {
     if (!cursoId) {
       toast.error("Seleciona um curso.");
       return;
     }
+    if (selectedModulos.length === 0) {
+      toast.error("Seleciona pelo menos um módulo.");
+      return;
+    }
+
     setLoading(true);
+    let successCount = 0;
+    let failCount = 0;
+
     try {
-      const res = await fetch("/api/convites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          formadorId,
-          cursoId,
-          moduloId: moduloId || undefined,
-          descricao: descricao.trim() || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error ?? "Erro ao enviar convite.");
-        return;
+      // Enviar um por um conforme solicitado
+      for (const mId of selectedModulos) {
+        const res = await fetch("/api/convites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            formadorId,
+            cursoId,
+            moduloId: mId,
+            descricao: descricao.trim() || undefined,
+          }),
+        });
+
+        if (res.ok) {
+          successCount++;
+        } else {
+          failCount++;
+        }
       }
-      toast.success(`Convite enviado a ${formadorNome}!`);
-      setCursoId("");
-      setModuloId("");
-      setDescricao("");
-      setOpen(false);
+
+      if (successCount > 0) {
+        toast.success(`${successCount} convites enviados com sucesso para ${formadorNome}!`);
+      }
+      if (failCount > 0) {
+        toast.error(`${failCount} convites falharam (possivelmente já existem).`);
+      }
+
+      if (successCount > 0) {
+        setCursoId("");
+        setSelectedModulos([]);
+        setDescricao("");
+        setOpen(false);
+      }
     } catch {
       toast.error("Erro de rede. Tenta novamente.");
     } finally {
@@ -308,19 +345,67 @@ function EnviarConviteDialog({
             </select>
           </div>
           {modulos.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="modulo">Módulo (opcional)</Label>
-              <select
-                id="modulo"
-                value={moduloId}
-                onChange={(e) => setModuloId(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">Seleciona um módulo</option>
-                {modulos.map((m) => (
-                  <option key={m.id} value={m.id}>{m.nome}</option>
-                ))}
-              </select>
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-gray-700 dark:text-gray-300">
+                  Módulos <span className="text-red-500">*</span>
+                </Label>
+                <button 
+                  type="button" 
+                  onClick={toggleAll}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider"
+                >
+                  {selectedModulos.length === modulos.length ? "Desmarcar todos" : "Selecionar todos"}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/20 max-h-56 overflow-y-auto custom-scrollbar">
+                {modulos.map((m) => {
+                  const isSelected = selectedModulos.includes(m.id);
+                  return (
+                    <label 
+                      key={m.id} 
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer group relative overflow-hidden",
+                        isSelected 
+                          ? "bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800/50 shadow-sm"
+                          : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:border-indigo-200 dark:hover:border-indigo-700"
+                      )}
+                    >
+                      <div className={cn(
+                        "h-4 w-4 rounded-md border flex items-center justify-center transition-all",
+                        isSelected 
+                          ? "bg-indigo-600 border-indigo-600"
+                          : "bg-transparent border-gray-300 dark:border-gray-600 group-hover:border-indigo-400"
+                      )}>
+                        {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                      </div>
+                      
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleModulo(m.id)}
+                        className="sr-only"
+                      />
+                      
+                      <span className={cn(
+                        "text-xs font-medium truncate transition-colors",
+                        isSelected 
+                          ? "text-indigo-700 dark:text-indigo-300" 
+                          : "text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                      )}>
+                        {m.nome}
+                      </span>
+
+                      {isSelected && (
+                        <div className="absolute top-0 right-0 p-1 opacity-20">
+                          <Puzzle className="h-8 w-8 text-indigo-600" />
+                        </div>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           )}
           <div className="flex flex-col gap-1.5">

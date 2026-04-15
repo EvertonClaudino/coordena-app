@@ -13,6 +13,7 @@ import {
   CheckCircle,
   Trash2,
   Loader2,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -343,7 +344,7 @@ function DetalhesDialog({
 
 // ─── Curso Row ─────────────────────────────────────────────────────────────────
 
-function CursoRow({
+function CursoCard({
   curso,
   onVerDetalhes,
   onExcluir,
@@ -356,7 +357,6 @@ function CursoRow({
     ? new Date(curso.dataInicio).toLocaleDateString("pt-PT", {
         day: "2-digit",
         month: "short",
-        year: "numeric",
       })
     : "—";
 
@@ -369,61 +369,64 @@ function CursoRow({
     : "—";
 
   return (
-    <div className="flex items-center justify-between gap-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-5 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-sm transition-all">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 truncate">
+    <div className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
+      {/* Header Compacto */}
+      <div className="p-4 flex items-start gap-4">
+        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:scale-110 transition-transform duration-300">
+          <GraduationCap className="h-5 w-5" />
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-1">
+             <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase inline-block",
+                STATUS_CONFIG[curso.status],
+              )}
+            >
+              {STATUS_LABELS[curso.status]}
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium">
+              {dataInicio} — {dataFim}
+            </span>
+          </div>
+          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {curso.nome}
           </h3>
-
-          <span
-            className={cn(
-              "shrink-0 rounded-full border px-3 py-0.5 text-xs font-semibold",
-              STATUS_CONFIG[curso.status],
-            )}
-          >
-            {STATUS_LABELS[curso.status]}
-          </span>
-        </div>
-
-        <div className="flex gap-5 text-sm text-gray-500 dark:text-gray-400 shrink-0 flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <CalendarDays className="h-4 w-4 text-gray-400" />
-            {dataInicio} — {dataFim}
-          </span>
-
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4 text-gray-400" />
-            {curso.cargaHoraria}h
-          </span>
-
-          <span className="flex items-center gap-1.5">
-            <Puzzle className="h-4 w-4 text-gray-400" />
-            {curso.modulos.length} módulo{curso.modulos.length !== 1 ? "s" : ""}
-          </span>
-
-          <span className="flex items-center gap-1.5">
-            <GraduationCap className="h-4 w-4 text-gray-400" />
-            {curso.formandos} formando{curso.formandos !== 1 ? "s" : ""}
-          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Mini Stats Grid */}
+      <div className="px-4 py-3 bg-gray-50/50 dark:bg-gray-800/20 border-t border-gray-100 dark:border-gray-800 grid grid-cols-3 gap-2">
+        <div className="flex flex-col">
+          <span className="text-[9px] uppercase font-bold text-gray-400">Duração</span>
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{curso.cargaHoraria}h</span>
+        </div>
+        <div className="flex flex-col border-x border-gray-100 dark:border-gray-800 px-2">
+          <span className="text-[9px] uppercase font-bold text-gray-400">Módulos</span>
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{curso.modulos.length}</span>
+        </div>
+        <div className="flex flex-col text-right">
+          <span className="text-[9px] uppercase font-bold text-gray-400">Alunos</span>
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{curso.formandos}</span>
+        </div>
+      </div>
+
+      {/* Actions Compactos */}
+      <div className="p-3 grid grid-cols-[1fr_40px] gap-2 mt-auto">
         <Button
           variant="outline"
           size="sm"
           onClick={onVerDetalhes}
-          className="shrink-0 rounded-xl border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-300 hover:text-indigo-600 text-sm px-4"
+          className="rounded-xl border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold text-xs h-9"
         >
           Ver Detalhes
         </Button>
-
         <Button
           variant="outline"
           size="sm"
           onClick={onExcluir}
-          className="rounded-xl border-red-100 dark:border-red-900 text-red-500 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30 h-9 w-9 p-0 flex items-center justify-center"
+          className="rounded-xl border-gray-100 dark:border-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 h-9 w-9 p-0 flex items-center justify-center"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -569,9 +572,9 @@ export function CursosContent({ cursos }: { cursos: CursoComDetalhes[] }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filtrados.map((curso) => (
-          <CursoRow
+          <CursoCard
             key={curso.id}
             curso={curso}
             onVerDetalhes={() => setSelectedCurso(curso)}
@@ -580,7 +583,7 @@ export function CursosContent({ cursos }: { cursos: CursoComDetalhes[] }) {
         ))}
 
         {filtrados.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center">
+          <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center">
             <GraduationCap className="h-10 w-10 text-gray-300 mb-3" />
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Nenhum curso encontrado

@@ -25,17 +25,15 @@ export async function PUT(
       );
     }
 
-    if (!cursoId) {
-      return Response.json({ error: "Curso é obrigatório" }, { status: 400 });
-    }
+    // Verifica se o curso existe (se fornecido)
+    if (cursoId) {
+      const cursoExists = await prisma.curso.findUnique({
+        where: { id: cursoId },
+      });
 
-    // Verifica se o curso existe
-    const cursoExists = await prisma.curso.findUnique({
-      where: { id: cursoId },
-    });
-
-    if (!cursoExists) {
-      return Response.json({ error: "Curso não encontrado" }, { status: 404 });
+      if (!cursoExists) {
+        return Response.json({ error: "Curso não encontrado" }, { status: 404 });
+      }
     }
 
     // Verifica se o módulo existe
@@ -95,7 +93,7 @@ export async function PUT(
         descricao: descricao?.trim() || null,
         ordem: parseInt(ordem) || 0,
         cargaHoraria: parseInt(cargaHoraria) || 0,
-        cursoId,
+        cursoId: cursoId || null,
       },
     });
 

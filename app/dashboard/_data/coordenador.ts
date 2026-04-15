@@ -42,7 +42,7 @@ export async function getProximasSessoes() {
   });
   return aulas.map((aula) => ({
     id: aula.id,
-    titulo: `${aula.modulo.curso.nome} · ${aula.titulo}`,
+    titulo: `${aula.modulo.curso?.nome || "Módulo Geral"} · ${aula.titulo}`,
     formador: aula.formador.user.nome,
     dataHora: aula.dataHora,
     duracao: aula.duracao,
@@ -459,7 +459,7 @@ export type ModuloComDetalhes = {
   descricao: string | null;
   ordem: number;
   cargaHoraria: number;
-  cursoId: string;
+  cursoId: string | null;
   curso?: { id: string; nome: string };
   formadores?: Array<{
     id: string;

@@ -33,7 +33,7 @@ interface Curso {
 interface Modulo {
   id: string;
   nome: string;
-  curso: Curso;
+  curso?: { id: string; nome: string } | null;
 }
 interface Formador {
   id: string;
@@ -248,7 +248,7 @@ function NovaSessaoDialog({
               <option value="">Seleciona um módulo…</option>
               {modulos.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.nome} ({m.curso.nome})
+                  {m.nome} ({m.curso?.nome || "Módulo Geral"})
                 </option>
               ))}
             </select>
@@ -533,34 +533,39 @@ export default function CoordenadorCalendario() {
         {/* Right panel */}
         <div className="flex flex-col gap-4">
           {/* Sessões do dia */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1 capitalize">
-              {selectedLabel ?? "Seleciona um dia"}
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">
-              {aulasDia.length > 0
-                ? `${aulasDia.length} sessão(ões)`
-                : "Sem sessões"}
-            </p>
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 capitalize">
+                  {selectedLabel ?? "Seleciona um dia"}
+                </h3>
+                <p className="text-[11px] text-gray-500">
+                  {aulasDia.length > 0
+                    ? `${aulasDia.length} sessão(ões)`
+                    : "Sem sessões"}
+                </p>
+              </div>
+            </div>
 
             {aulasDia.length > 0 ? (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 {aulasDia
                   .sort(
                     (a, b) =>
                       new Date(a.dataHora).getTime() -
                       new Date(b.dataHora).getTime(),
                   )
+                  .slice(0, 4)
                   .map((aula) => (
                     <div
                       key={aula.id}
                       className={cn(
-                        "rounded-xl border p-4 flex flex-col gap-2",
+                        "rounded-xl border p-3 flex flex-col gap-1.5 transition-all hover:shadow-md",
                         corModulo(aula.moduloId),
                       )}
                     >
                       <div className="flex items-start justify-between gap-2 min-w-0">
-                        <p className="text-sm font-semibold leading-tight truncate flex-1 min-w-0">
+                        <p className="text-xs font-bold leading-tight truncate flex-1 min-w-0">
                           {aula.titulo}
                         </p>
                         <button
@@ -570,73 +575,117 @@ export default function CoordenadorCalendario() {
                           title="Eliminar sessão"
                         >
                           {deleting === aula.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3 w-3" />
                           )}
                         </button>
                       </div>
-                      <div className="text-[11px] font-medium opacity-70 rounded-md bg-white/40 px-2 py-0.5 w-fit max-w-full truncate">
-                        {aula.modulo.curso.nome} · {aula.modulo.nome}
-                      </div>
-                      <div className="flex flex-wrap gap-y-2 gap-x-3 text-xs opacity-80 min-w-0">
-                        <span className="flex items-center gap-1 truncate">
-                          <Clock className="h-3 w-3 shrink-0" />{" "}
-                          {formatTime(aula)} · {formatDuracao(aula.duracao)}
-                        </span>
-                        <span className="flex items-center gap-1 truncate">
-                          <Users className="h-3 w-3 shrink-0" />{" "}
-                          {aula.formador.user.nome}
-                        </span>
+                      
+                      <div className="flex flex-col gap-1">
+                        <div className="text-[10px] font-bold opacity-70 truncate px-1.5 py-0.5 rounded-md bg-white/40 w-fit max-w-full">
+                          {aula.modulo.curso?.nome || "Sem curso"} · {aula.modulo.nome}
+                        </div>
+                        <div className="flex items-center gap-3 text-[10px] opacity-80 font-medium">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-2.5 w-2.5" />
+                            {formatTime(aula)} ({formatDuracao(aula.duracao)})
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="h-2.5 w-2.5" />
+                            {aula.formador.user.nome.split(" ")[0]}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
+
+                {aulasDia.length > 4 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="w-full mt-1 py-2 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-100 dark:border-indigo-900/50">
+                        + {aulasDia.length - 4} sessão(ões) hoje
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Sessões de {selectedLabel}</DialogTitle>
+                        <DialogDescription>
+                          Lista completa de sessoes para este dia.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {aulasDia
+                          .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime())
+                          .map((aula) => (
+                            <div key={aula.id} className={cn("rounded-xl border p-4 flex items-center justify-between gap-4", corModulo(aula.moduloId))}>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-bold truncate">{aula.titulo}</h4>
+                                <p className="text-xs opacity-80 mt-0.5">
+                                  {formatTime(aula)} · {aula.modulo.nome} · {aula.formador.user.nome}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleDelete(aula.id)}
+                                disabled={deleting === aula.id}
+                                className="p-2 rounded-lg hover:bg-white/50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex flex-col items-center justify-center py-6 text-center">
                 <Clock className="h-8 w-8 text-gray-200 mb-2" />
-                <p className="text-xs text-gray-400">
-                  Nenhuma sessão neste dia
-                </p>
+                <p className="text-[11px] text-gray-400">Nenhuma sessão neste dia</p>
               </div>
             )}
           </div>
 
-          {/* Próximas sessões */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {/* Próximas sessões - Compacto */}
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+            <h3 className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-4 px-1">
               Próximas Sessões
             </h3>
             {proximas.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-4">
+              <p className="text-[11px] text-gray-400 text-center py-4">
                 Sem sessões futuras
               </p>
             ) : (
               <div className="flex flex-col gap-2">
                 {proximas.map((aula) => {
                   const [, month, day] = aulaDateISO(aula).split("-");
+                  const moduloColor = corModulo(aula.moduloId).split(" ")[1].replace("text-", "bg-");
                   return (
                     <button
                       key={aula.id}
                       onClick={() => setSelectedDate(aulaDateISO(aula))}
-                      className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2.5 text-left hover:border-indigo-200 hover:bg-indigo-50/40 dark:hover:border-indigo-800 dark:hover:bg-indigo-900/20 transition-colors"
+                      className="group flex items-center gap-3 rounded-xl border border-transparent bg-gray-50/50 dark:bg-gray-800/40 px-3 py-2 text-left hover:border-indigo-200 hover:bg-white dark:hover:bg-gray-800 dark:hover:border-indigo-800 transition-all duration-200"
                     >
-                      <div className="flex w-10 shrink-0 flex-col items-center rounded-lg bg-indigo-100 py-1.5">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-500">
+                      <div className="flex w-10 h-10 shrink-0 flex-col items-center justify-center rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 group-hover:bg-indigo-600 transition-colors">
+                        <span className="text-[9px] font-bold uppercase text-gray-400 group-hover:text-indigo-200">
                           {MONTHS[parseInt(month) - 1].slice(0, 3)}
                         </span>
-                        <span className="text-sm font-bold leading-tight text-indigo-700 dark:text-indigo-400">
+                        <span className="text-sm font-black text-gray-700 dark:text-gray-200 group-hover:text-white">
                           {day}
                         </span>
                       </div>
-                      <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">
-                          {aula.titulo}
-                        </span>
-                        <span className="text-[11px] text-gray-400">
-                          {formatTime(aula)} · {formatDuracao(aula.duracao)} ·{" "}
-                          {aula.formador.user.nome}
-                        </span>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <div className={cn("h-1.5 w-1.5 rounded-full", moduloColor)} />
+                          <span className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">
+                            {aula.titulo}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-medium truncate">
+                           {formatTime(aula)} · {aula.modulo.nome.split("—")[0]}
+                        </p>
                       </div>
                     </button>
                   );

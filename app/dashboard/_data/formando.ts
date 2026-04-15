@@ -204,7 +204,7 @@ export async function getProximasSessoesFormando(userId: string) {
 
     return aulas.map((aula) => ({
         id: aula.id,
-        titulo: `${aula.modulo.curso.nome} · ${aula.titulo}`,
+        titulo: `${aula.modulo.curso?.nome || "Módulo Geral"} · ${aula.titulo}`,
         formador: aula.formador.user.nome,
         dataHora: aula.dataHora,
         duracao: aula.duracao,
@@ -495,6 +495,7 @@ export async function getMeusTrabalhos(userId: string) {
                     }
                     return {
                         moduloId: modulo.id,
+                        cursoNome: modulo.curso?.nome || "Módulo Geral",
                         moduloNome: modulo.nome,
                         id: item.id,
                         nome: item.nome,

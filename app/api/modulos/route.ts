@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { filtroModulosCoordenador, cursoPertenceAoCoordenador } from "@/lib/coordenador-utils";
+import { filtroModulosCoordenador, cursoPertenceAoCoordenador, getCoordenadorIdOrNull } from "@/lib/coordenador-utils";
 
 // ─── GET /api/modulos ─────────────────────────────────────────────────────────
 
@@ -52,17 +52,15 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!cursoId) {
-      return NextResponse.json({ error: "Curso é obrigatório" }, { status: 400 });
-    }
-
-    // Verificar se o curso pertence ao coordenador logado
-    const cursoPertence = await cursoPertenceAoCoordenador(cursoId);
-    if (!cursoPertence) {
-      return NextResponse.json(
-        { error: "Curso não encontrado ou não pertence ao coordenador" },
-        { status: 403 }
-      );
+    // Verificar se o curso pertence ao coordenador logado (se fornecido)
+    if (cursoId) {
+      const cursoPertence = await cursoPertenceAoCoordenador(cursoId);
+      if (!cursoPertence) {
+        return NextResponse.json(
+          { error: "Curso não encontrado ou não pertence ao coordenador" },
+          { status: 403 }
+        );
+      }
     }
 
     if (formadorId) {
@@ -77,6 +75,8 @@ export async function POST(req: Request) {
       }
     }
 
+    const coordenadorId = await getCoordenadorIdOrNull();
+
     // Criar módulo
     const modulo = await prisma.modulo.create({
       data: {
@@ -84,7 +84,8 @@ export async function POST(req: Request) {
         descricao: descricao?.trim() || null,
         ordem: parseInt(ordem) || 0,
         cargaHoraria: parseInt(cargaHoraria) || 0,
-        cursoId,
+        cursoId: cursoId || null,
+        coordenadorId,
       },
     });
 

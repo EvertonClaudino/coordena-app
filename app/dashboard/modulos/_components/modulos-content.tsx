@@ -15,6 +15,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ModuloComDetalhes, CursoComDetalhes, FormadorComDetalhes } from "@/app/dashboard/_data/coordenador";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // ─── Novo Módulo Dialog ───────────────────────────────────────────────────────
 
@@ -46,8 +52,8 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
       return;
     }
 
-    if (!formData.cursoId) {
-      setError("Curso é obrigatório");
+    if (!formData.nome.trim()) {
+      setError("Nome do módulo é obrigatório");
       return;
     }
 
@@ -127,7 +133,7 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
               disabled={loading}
               className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
-              <option value="">Seleciona um curso...</option>
+              <option value="">Sem curso (Módulo Geral)</option>
               {cursos.map(curso => (
                 <option key={curso.id} value={curso.id}>
                   {curso.nome}
@@ -220,55 +226,48 @@ function NovoModuloDialog({ cursos, formadores }: { cursos: CursoComDetalhes[]; 
   );
 }
 
-// ─── Módulo Card ──────────────────────────────────────────────────────────────
+// ─── Módulo Compact Row ───────────────────────────────────────────────────────
 
-function ModuloCard({ modulo, onEditar, onExcluir }: { modulo: ModuloComDetalhes; onEditar: () => void; onExcluir: () => void }) {
+function ModuloCompactRow({ modulo, onEdit, onDelete }: { modulo: ModuloComDetalhes; onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:border-indigo-200 hover:shadow-sm transition-all">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-0.5 flex-1">
-          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{modulo.nome}</h3>
-          {modulo.curso && (
-            <span className="text-sm text-gray-500 dark:text-gray-400">{modulo.curso.nome}</span>
-          )}
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 transition-all hover:shadow-sm">
+      <div className="flex flex-col gap-1 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-gray-900 dark:text-gray-100">{modulo.nome}</span>
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+            Ordem {modulo.ordem}
+          </span>
         </div>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
-          <Puzzle className="h-4 w-4 text-indigo-400" />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-1">
+            <Loader2 className="h-3 w-3" /> {/* Placeholder icon, could be Clock but Loader2 is available */}
+            <span>{modulo.cargaHoraria} horas</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Users className="h-3 w-3" />
+            <span>
+              {modulo.formadores && modulo.formadores.length > 0 
+                ? modulo.formadores.map(f => f.user.nome).join(", ")
+                : "Sem formador"}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Info */}
-      <div className="flex gap-4 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800 pt-3">
-        <span className="font-medium">Ordem: {modulo.ordem}</span>
-        <span className="font-medium">{modulo.cargaHoraria}h</span>
-      </div>
-
-      {/* Formadores */}
       <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-gray-400 shrink-0" />
-        {modulo.formadores && modulo.formadores.length > 0 ? (
-          <span className="text-sm text-gray-600 dark:text-gray-300">{modulo.formadores.map(f => f.user.nome).join(", ")}</span>
-        ) : (
-          <span className="text-sm font-medium text-amber-500">Sem formador</span>
-        )}
-      </div>
-
-      {/* Botões */}
-      <div className="flex gap-2 pt-2">
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={onEditar}
-          className="flex-1 rounded-xl border-indigo-200 text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50"
+          onClick={onEdit}
+          className="h-8 px-3 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
         >
           Editar
         </Button>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={onExcluir}
-          className="rounded-xl border-red-100 text-red-500 hover:border-red-200 hover:bg-red-50"
+          onClick={onDelete}
+          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -349,7 +348,7 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
     descricao: modulo.descricao || "",
     ordem: modulo.ordem.toString(),
     cargaHoraria: modulo.cargaHoraria.toString(),
-    cursoId: modulo.cursoId,
+    cursoId: modulo.cursoId || "",
     formadorId: modulo.formadores?.[0]?.id || "",
   });
 
@@ -434,6 +433,7 @@ function EditarModuloDialog({ modulo, cursos, formadores, onClose }: { modulo: M
               disabled={loading}
               className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
+              <option value="">Sem curso (Módulo Geral)</option>
               {cursos.map(curso => (
                 <option key={curso.id} value={curso.id}>
                   {curso.nome}
@@ -529,11 +529,24 @@ export function ModulosContent({ modulos, cursos, formadores }: { modulos: Modul
   const [selectedModulo, setSelectedModulo] = useState<ModuloComDetalhes | null>(null);
   const [moduloParaExcluir, setModuloParaExcluir] = useState<ModuloComDetalhes | null>(null);
 
-  const modulosFiltrados = modulos.filter(
-    (m) =>
-      m.nome.toLowerCase().includes(search.toLowerCase()) ||
-      m.curso?.nome.toLowerCase().includes(search.toLowerCase())
-  );
+  const modulosFiltrados = modulos.filter((m) => {
+    const searchLower = search.toLowerCase();
+    const nomeMatch = m.nome.toLowerCase().includes(searchLower);
+    const cursoMatch = m.curso?.nome?.toLowerCase().includes(searchLower) ?? false;
+    return nomeMatch || cursoMatch;
+  });
+
+  // Agrupar módulos por cursoId para o acordeão
+  const modulosAgrupados = modulosFiltrados.reduce((acc, modulo) => {
+    const key = modulo.cursoId || "outros";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(modulo);
+    return acc;
+  }, {} as Record<string, ModuloComDetalhes[]>);
+
+  // Identificar os IDs dos cursos que possuem módulos (ou que estão na lista de cursos)
+  const cursoIdsComModulos = Object.keys(modulosAgrupados).filter(id => id !== "outros");
+  const modulosSemCurso = modulosAgrupados["outros"] || [];
 
   const handleConfirmExcluir = async () => {
     if (!moduloParaExcluir) return;
@@ -577,19 +590,83 @@ export function ModulosContent({ modulos, cursos, formadores }: { modulos: Modul
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid gap-6 md:grid-cols-3 sm:grid-cols-1">
+      {/* Accordion List - Grouped by Course */}
+      <div className="flex flex-col gap-4">
         {modulosFiltrados.length > 0 ? (
-          modulosFiltrados.map((modulo) => (
-            <ModuloCard 
-              key={modulo.id} 
-              modulo={modulo} 
-              onEditar={() => setSelectedModulo(modulo)} 
-              onExcluir={() => setModuloParaExcluir(modulo)}
-            />
-          ))
+          <Accordion type="multiple" className="w-full space-y-4">
+            {/* Cursos com Módulos */}
+            {cursos
+              .filter(curso => modulosAgrupados[curso.id])
+              .map((curso) => (
+                <AccordionItem 
+                  key={curso.id} 
+                  value={curso.id}
+                  className="border rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 overflow-hidden transition-all hover:border-indigo-200"
+                >
+                  <AccordionTrigger className="hover:no-underline py-5 text-gray-900 dark:text-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30">
+                        <Puzzle className="h-5 w-5 text-indigo-500" />
+                      </div>
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="font-bold text-lg">{curso.nome}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {modulosAgrupados[curso.id].length} módulos
+                        </span>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6">
+                    <div className="flex flex-col gap-3 pt-2">
+                      {modulosAgrupados[curso.id].map(modulo => (
+                        <ModuloCompactRow 
+                          key={modulo.id} 
+                          modulo={modulo} 
+                          onEdit={() => setSelectedModulo(modulo)} 
+                          onDelete={() => setModuloParaExcluir(modulo)}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+
+            {/* Módulos Sem Curso (Outros) */}
+            {modulosSemCurso.length > 0 && (
+              <AccordionItem 
+                value="outros"
+                className="border rounded-2xl border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 overflow-hidden transition-all hover:border-amber-200"
+              >
+                <AccordionTrigger className="hover:no-underline py-5 text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/30">
+                      <Puzzle className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="font-bold text-lg">Outros (Sem curso associado)</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {modulosSemCurso.length} módulos
+                      </span>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6">
+                  <div className="flex flex-col gap-3 pt-2">
+                    {modulosSemCurso.map(modulo => (
+                      <ModuloCompactRow 
+                        key={modulo.id} 
+                        modulo={modulo} 
+                        onEdit={() => setSelectedModulo(modulo)} 
+                        onDelete={() => setModuloParaExcluir(modulo)}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+          </Accordion>
         ) : (
-          <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center">
             <Puzzle className="h-10 w-10 text-gray-300 mb-3" />
             <p className="text-sm font-medium text-gray-500">Nenhum módulo encontrado</p>
           </div>

@@ -155,7 +155,13 @@ export async function filtroModulosCoordenador(where: Prisma.ModuloWhereInput = 
     return { ...where, curso: { id: '00000000-0000-0000-0000-000000000000' } }
   }
 
-  return { ...where, curso: { coordenadorId } }
+  return { 
+    ...where, 
+    OR: [
+      { curso: { coordenadorId } },
+      { coordenadorId }
+    ]
+  }
 }
 
 /**
