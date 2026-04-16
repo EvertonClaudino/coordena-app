@@ -348,9 +348,9 @@ export default function DisponibilidadesFormador({
    * NOVO: Listener global para limpar estado quando mouse sai da área
    */
   useEffect(() => {
-    function handleMouseUpGlobal() {
+    function handleMouseUpGlobal(event: MouseEvent) {
       if (isDragging) {
-        handleMouseUp();
+        handleMouseUp(event as unknown as React.MouseEvent);
       }
     }
 

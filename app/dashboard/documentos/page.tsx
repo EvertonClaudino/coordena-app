@@ -23,10 +23,20 @@ export default async function DocumentosPage() {
       where: { userId: id }
     })
     
-    if (!formador) redirect('/dashboard')
+    console.log('[Documentos Page] FormadorId encontrado:', formador?.id)
     
-    const documentos = await getDocumentosFormador(formador.id)
-    return <FormadorDocumentos documentos={documentos} />
+    if (!formador) {
+      console.log('[Documentos Page] Nenhum formador encontrado para userId:', id)
+      redirect('/dashboard')
+    }
+    
+    try {
+      const documentos = await getDocumentosFormador(formador.id)
+      return <FormadorDocumentos documentos={documentos} />
+    } catch (error) {
+      console.error('[Documentos Page] Erro ao carregar documentos:', error)
+      redirect('/dashboard')
+    }
   }
 
   if (role === 'FORMANDO') {

@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 
 /**
  * GET /api/documentos/preview/[id]
@@ -9,15 +8,16 @@ import { redirect } from "next/navigation";
  */
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return new Response("Não autorizado", { status: 401 });
     }
 
-    const documentoId = params.id;
+    const documentoId = id;
 
     // Buscar document
     const documento = await prisma.documento.findUnique({
@@ -42,7 +42,7 @@ export async function GET(
 
     // Redirecionar para o URL do ficheiro
     if (documento.fileUrl) {
-      redirect(documento.fileUrl);
+      return Response.redirect(documento.fileUrl, 307);
     }
 
     return new Response("Ficheiro não disponível", { status: 404 });
