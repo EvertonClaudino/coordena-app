@@ -128,123 +128,175 @@ export default async function FormadorPerfilPage({
     : [];
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Back */}
-      <Link
-        href="/dashboard/formadores"
-        className="flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Voltar a Formadores
-      </Link>
+    <div className="flex flex-col gap-6 -mt-2">
+      {/* Top Header / Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard/formadores"
+          className="flex w-fit items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-indigo-600 transition-colors bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Lista de Formadores
+        </Link>
+      </div>
 
-      {/* Header card (MANTIDO) */}
-      <div className="flex items-center gap-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
-        <Avatar className="h-20 w-20 border-2 border-gray-100 shrink-0">
-          <AvatarFallback className="bg-indigo-100 text-indigo-600 text-2xl font-bold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+      {/* Header Section */}
+      <div className="relative rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center gap-5">
+            {/* Round Avatar */}
+            <div className="relative">
+              <Avatar className="h-20 w-20 border-2 border-indigo-50 dark:border-indigo-950 shadow-sm rounded-full shrink-0">
+                <AvatarFallback className="bg-indigo-50 text-indigo-600 text-2xl font-black">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-white dark:border-gray-900 shadow-sm" title="Ativo" />
+            </div>
 
-        <div className="flex flex-1 flex-col gap-2 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {formador.nome}
-          </h1>
+            <div className="flex flex-col gap-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
+                <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-gray-100">
+                  {formador.nome}
+                </h1>
+                <span className="rounded-full bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900">
+                  Formador
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
+                <span className="flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-indigo-500" />
+                  {formador.email}
+                </span>
+                {formador.especialidade && (
+                  <>
+                    <span className="hidden md:inline text-gray-300 dark:text-gray-700">•</span>
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase className="h-3.5 w-3.5 text-indigo-500" />
+                      {formador.especialidade}
+                    </span>
+                  </>
+                )}
+                {formador.idioma && (
+                  <>
+                    <span className="hidden md:inline text-gray-300 dark:text-gray-700">•</span>
+                    <span className="flex items-center gap-1.5">
+                      <Globe className="h-3.5 w-3.5 text-indigo-500" />
+                      {formador.idioma}
+                    </span>
+                  </>
+                )}
+              </div>
 
-          <div className="flex flex-wrap gap-x-5 gap-y-1.5">
-            <span className="flex items-center gap-1.5 text-sm text-gray-500">
-              <Mail className="h-3.5 w-3.5 shrink-0" />
-              {formador.email}
-            </span>
-            {formador.especialidade && (
-              <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Briefcase className="h-3.5 w-3.5 shrink-0" />
-                {formador.especialidade}
-              </span>
-            )}
-            {formador.idioma && (
-              <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Globe className="h-3.5 w-3.5 shrink-0" />
-                {formador.idioma}
-              </span>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            {formador.linkedin && (
-              <a
-                href={formador.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
-              >
-                LinkedIn ↗
-              </a>
-            )}
-            {formador.github && (
-              <a
-                href={formador.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors"
-              >
-                <Github className="h-3.5 w-3.5" /> GitHub ↗
-              </a>
-            )}
+              {/* Social links */}
+              {(formador.linkedin || formador.github) && (
+                <div className="flex items-center gap-3 mt-1 justify-center md:justify-start">
+                  {formador.linkedin && (
+                    <a
+                      href={formador.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                      LinkedIn ↗
+                    </a>
+                  )}
+                  {formador.github && (
+                    <a
+                      href={formador.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors"
+                    >
+                      <Github className="h-3.5 w-3.5" /> GitHub ↗
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Body grid (MANTIDO) */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
-        {/* Módulos Lecionados */}
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
-            <BookOpen className="h-4 w-4 text-indigo-500" />
-            Módulos Lecionados
-          </h2>
-
-          {formador.modulos.length === 0 ? (
-            <p className="py-6 text-center text-sm text-gray-400">
-              Sem módulos atribuídos
-            </p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {formador.modulos.map((mod) => (
-                <div
-                  key={mod.id}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3"
-                >
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {mod.nome}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {mod.curso?.nome || "Módulo Geral"}
-                    </span>
-                  </div>
-                  <span className="shrink-0 text-xs text-gray-400">
-                    {mod.cargaHoraria}h
-                  </span>
-                </div>
-              ))}
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { label: "Módulos Atribuídos", value: formador.modulos.length, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-950/30" },
+          { label: "Competências", value: competencias.length, icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50 dark:bg-green-950/30" },
+          { label: "Documentos", value: formador.documentos.length, icon: FileText, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
+        ].map((stat, i) => (
+          <div key={i} className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
+            <div className={cn("p-3 rounded-xl", stat.bg)}>
+              <stat.icon className={cn("h-5 w-5", stat.color)} />
             </div>
-          )}
+            <div className="flex flex-col">
+              <span className="text-xl font-black text-gray-900 dark:text-gray-100">{stat.value}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{stat.label}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Modules */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="flex items-center gap-3 text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight">
+                <span className="h-7 w-1.5 rounded-full bg-indigo-600" />
+                Módulos Lecionados
+              </h2>
+            </div>
+
+            {formador.modulos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="p-4 rounded-full bg-gray-50 dark:bg-gray-800 mb-4">
+                  <BookOpen className="h-8 w-8 text-gray-300" />
+                </div>
+                <p className="text-sm font-medium text-gray-400">Sem módulos atribuídos</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {formador.modulos.map((mod) => (
+                  <div
+                    key={mod.id}
+                    className="group flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 p-4 hover:border-indigo-200 dark:hover:border-indigo-900 transition-all hover:bg-white dark:hover:bg-gray-800 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                        {mod.curso?.nome || "Módulo Geral"}
+                      </span>
+                      <span className="text-xs font-extrabold text-gray-800 dark:text-gray-200 group-hover:text-indigo-600 transition-colors truncate">
+                        {mod.nome}
+                      </span>
+                      <span className="text-[10px] font-medium text-gray-400">{mod.cargaHoraria} horas</span>
+                    </div>
+                    <div className="shrink-0 ml-3">
+                      <span className="flex items-center justify-center h-9 w-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-xs font-black text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900">
+                        {mod.cargaHoraria}h
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Coluna direita */}
+        {/* Right Column: Competencies, Documents, Extra Info */}
         <div className="flex flex-col gap-6">
-          {/* Competências */}
+          {/* Competencies */}
           {competencias.length > 0 && (
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-              <h2 className="mb-3 text-base font-semibold text-gray-900 dark:text-gray-100">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+              <h2 className="mb-6 text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">
                 Competências
               </h2>
               <div className="flex flex-wrap gap-2">
                 {competencias.map((comp: string) => (
                   <span
                     key={comp}
-                    className="rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600"
+                    className="rounded-full border border-indigo-100 dark:border-indigo-900 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400"
                   >
                     {comp}
                   </span>
@@ -253,25 +305,26 @@ export default async function FormadorPerfilPage({
             </div>
           )}
 
-          {/* Documentos */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-            <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
-              <FileText className="h-4 w-4 text-indigo-500" />
-              Documentos
+          {/* Documents */}
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+            <h2 className="mb-6 flex items-center gap-3 text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">
+              <FileText className="h-4 w-4 text-indigo-600" />
+              Documentação
             </h2>
 
             {formador.documentos.length === 0 ? (
-              <p className="py-4 text-center text-sm text-gray-400">
-                Sem documentos registados
-              </p>
+              <div className="py-8 text-center bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
+                <AlertTriangle className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sem registos</p>
+              </div>
             ) : (
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-3">
                 {formador.documentos.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center justify-between gap-2"
+                    className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800"
                   >
-                    <span className="text-sm text-gray-700 dark:text-gray-200">
+                    <span className="text-xs font-black text-gray-800 dark:text-gray-200 uppercase tracking-tight">
                       {doc.tipo}
                     </span>
                     <DocBadge status={doc.status} />
@@ -281,17 +334,13 @@ export default async function FormadorPerfilPage({
             )}
           </div>
 
-          {/* Info adicional */}
+          {/* Nationality */}
           {formador.nacionalidade && (
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-              <h2 className="mb-3 text-base font-semibold text-gray-900 dark:text-gray-100">
-                Informação Adicional
-              </h2>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Nacionalidade</span>
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {formador.nacionalidade}
-                </span>
+            <div className="rounded-2xl border border-indigo-100 dark:border-indigo-950 bg-indigo-50/50 dark:bg-indigo-950/20 p-6 shadow-sm">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-4">INFO ADICIONAL</h4>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400 font-medium">Nacionalidade</span>
+                <span className="text-xs font-black text-gray-700 dark:text-gray-300">{formador.nacionalidade}</span>
               </div>
             </div>
           )}
@@ -300,3 +349,4 @@ export default async function FormadorPerfilPage({
     </div>
   );
 }
+

@@ -60,14 +60,13 @@ function toISO(y: number, m: number, d: number) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CalendarioFormandoPage() {
-    const today = new Date();
-    const [viewYear, setViewYear] = useState(today.getFullYear());
-    const [viewMonth, setViewMonth] = useState(today.getMonth());
-    const [selected, setSelected] = useState(
-        toISO(today.getFullYear(), today.getMonth(), today.getDate()),
-    );
-    const [minhasSessoes, setMinhasSessoes] = useState<Sessao[]>([]);
-    const [_loading, setLoading] = useState(true);
+  const today = new Date();
+  const [viewYear,  setViewYear]  = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [selected,  setSelected]  = useState(toISO(today.getFullYear(), today.getMonth(), today.getDate()));
+  const [paginaSessoesDia, setPaginaSessoesDia] = useState(0);
+  const [minhasSessoes, setMinhasSessoes] = useState<Sessao[]>([]);
+  const [_loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchSessoes() {
@@ -144,197 +143,156 @@ export default function CalendarioFormandoPage() {
           })
         : null;
 
-    return (
-        <div className="flex flex-col gap-3">
-            {/* Header */}
-            <div>
-                <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100">
-                    O Meu Calendário
-                </h1>
-                <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                    {sessoesMes.length} sessões este mês
-                </p>
-            </div>
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100">O Meu Calendário</h1>
+        <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{sessoesMes.length} sessões este mês</p>
+      </div>
 
-            <div className="grid grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-[1fr_380px] items-start">
-                {/* Calendar */}
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 self-start">
-                    {/* Nav */}
-                    <div className="flex items-center justify-between mb-6">
-                        <button
-                            onClick={prevMonth}
-                            aria-label="Mês anterior"
-                            className="flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                        >
-                            <ChevronLeft
-                                className="h-4 w-4 text-gray-600"
-                                aria-hidden="true"
-                            />
-                        </button>
-                        <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">
-                            {MONTHS[viewMonth]} {viewYear}
-                        </h2>
-                        <button
-                            onClick={nextMonth}
-                            aria-label="Mês seguinte"
-                            className="flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                        >
-                            <ChevronRight
-                                className="h-4 w-4 text-gray-600"
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-[1fr_380px] items-stretch">
+        {/* Calendar */}
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 flex flex-col justify-between">
+          {/* Nav */}
+          <div className="flex items-center justify-between mb-6">
+            <button onClick={prevMonth} aria-label="Mês anterior" className="flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronLeft className="h-4 w-4 text-gray-600" aria-hidden="true" />
+            </button>
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">{MONTHS[viewMonth]} {viewYear}</h2>
+            <button onClick={nextMonth} aria-label="Mês seguinte" className="flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronRight className="h-4 w-4 text-gray-600" aria-hidden="true" />
+            </button>
+          </div>
 
-                    {/* Day headers */}
-                    <div className="grid grid-cols-7 mb-2">
-                        {DAYS_SHORT.map((d) => (
-                            <div
-                                key={d}
-                                className="text-center text-xs font-semibold text-gray-400 py-1"
-                            >
-                                {d}
-                            </div>
-                        ))}
-                    </div>
+          {/* Day headers */}
+          <div className="grid grid-cols-7 mb-2">
+            {DAYS_SHORT.map(d => (
+              <div key={d} className="text-center text-xs font-semibold text-gray-400 py-1">{d}</div>
+            ))}
+          </div>
 
-                    {/* Days */}
-                    <div className="grid grid-cols-7 gap-1">
-                        {Array.from({ length: firstDay }).map((_, i) => (
-                            <div key={`e-${i}`} />
-                        ))}
-                        {Array.from({ length: daysInMonth }).map((_, i) => {
-                            const day = i + 1;
-                            const iso = toISO(viewYear, viewMonth, day);
-                            const isToday = iso === todayISO;
-                            const isSelected = iso === selected;
-                            const hasSessao = diasComSessao.has(day);
-                            return (
-                                <button
-                                    key={day}
-                                    onClick={() => setSelected(iso)}
-                                    className={cn(
-                                        "relative flex flex-col items-center justify-center rounded-xl py-2 text-sm font-medium transition-all",
-                                        isSelected
-                                            ? "bg-teal-500 text-white shadow-sm"
-                                            : isToday
-                                              ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold"
-                                              : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800",
-                                    )}
-                                >
-                                    {day}
-                                    {hasSessao && (
-                                        <span
-                                            className={cn(
-                                                "mt-0.5 h-1 w-1 rounded-full",
-                                                isSelected
-                                                    ? "bg-white/60"
-                                                    : "bg-teal-400",
-                                            )}
-                                        />
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Right panel */}
-                <div className="flex flex-col gap-4">
-                    {/* Sessions for selected day */}
-                    <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1 capitalize">
-                            {selectedLabel ?? "Seleciona um dia"}
-                        </h3>
-                        <p className="text-xs text-gray-400 mb-4">
-                            {sessoesDia.length > 0
-                                ? `${sessoesDia.length} sessão(ões)`
-                                : "Sem sessões"}
-                        </p>
-                        {sessoesDia.length > 0 ? (
-                            <div className="flex flex-col gap-3 max-h-[240px] overflow-y-auto pr-2">
-                                {sessoesDia.map((s) => (
-                                    <div
-                                        key={s.id}
-                                        className={cn(
-                                            "rounded-xl border p-4 flex flex-col gap-2",
-                                            s.cor,
-                                        )}
-                                    >
-                                        <div className="flex items-start justify-between gap-2 min-w-0">
-                                            <p className="text-sm font-semibold leading-tight truncate flex-1 min-w-0">
-                                                {s.titulo}
-                                            </p>
-                                            <span className="shrink-0 rounded-lg bg-white/50 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap">
-                                                {s.ufcd}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-y-2 gap-x-3 text-xs opacity-80 min-w-0">
-                                            <span className="flex items-center gap-1 truncate">
-                                                <Clock className="h-3 w-3 shrink-0" />
-                                                {s.horaInicio} · {s.duracao}
-                                            </span>
-                                            <span className="flex items-center gap-1 truncate">
-                                                <User className="h-3 w-3 shrink-0" />
-                                                {s.formador}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-8">
-                                <Clock className="h-8 w-8 text-gray-200 mb-2" />
-                                <p className="text-xs text-gray-400">
-                                    Nenhuma sessão neste dia
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Próximas Sessões */}
-            <div className="grid grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-[1fr_380px] items-start">
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">
-                        Próximas Sessões
-                    </h3>
-                    <div className="flex flex-col gap-2">
-                        {proximas.map((s) => {
-                            const [, month, day] = s.data.split("-");
-                            return (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setSelected(s.data)}
-                                    className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2.5 text-left hover:border-teal-200 hover:bg-teal-50/30 dark:hover:border-teal-800 dark:hover:bg-teal-900/20 transition-colors"
-                                >
-                                    <div className="flex w-10 shrink-0 flex-col items-center rounded-lg bg-teal-100 py-1.5">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-teal-500">
-                                            {MONTHS[parseInt(month) - 1].slice(
-                                                0,
-                                                3,
-                                            )}
-                                        </span>
-                                        <span className="text-sm font-bold leading-tight text-teal-700 dark:text-teal-400">
-                                            {day}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-col gap-0.5 min-w-0">
-                                        <span className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">
-                                            {s.titulo}
-                                        </span>
-                                        <span className="text-[11px] text-gray-400">
-                                            {s.horaInicio} · {s.duracao} ·{" "}
-                                            {s.formador}
-                                        </span>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
+          {/* Days */}
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day        = i + 1;
+              const iso        = toISO(viewYear, viewMonth, day);
+              const isToday    = iso === todayISO;
+              const isSelected = iso === selected;
+              const hasSessao  = diasComSessao.has(day);
+              return (
+                <button
+                  key={day}
+                  onClick={() => setSelected(iso)}
+                  className={cn(
+                    "relative flex flex-col items-center justify-center rounded-xl py-2 text-sm font-medium transition-all",
+                    isSelected ? "bg-teal-500 text-white shadow-sm"
+                    : isToday  ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold"
+                    :            "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  )}
+                >
+                  {day}
+                  {hasSessao && (
+                    <span className={cn("mt-0.5 h-1 w-1 rounded-full", isSelected ? "bg-white/60" : "bg-teal-400")} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Right panel */}
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1 capitalize">{selectedLabel ?? "Seleciona um dia"}</h3>
+          <p className="text-xs text-gray-400 mb-4">
+            {sessoesDia.length > 0 ? `${sessoesDia.length} sessão(ões)` : "Sem sessões"}
+          </p>
+          {sessoesDia.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {sessoesDia
+                .slice(paginaSessoesDia * 3, (paginaSessoesDia + 1) * 3)
+                .map(s => (
+                  <div key={s.id} className={cn("rounded-xl border p-4 flex flex-col gap-2", s.cor)}>
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <p className="text-sm font-semibold leading-tight truncate flex-1 min-w-0">{s.titulo}</p>
+                      <span className="shrink-0 rounded-lg bg-white/50 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap">{s.ufcd}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-y-2 gap-x-3 text-xs opacity-80 min-w-0">
+                      <span className="flex items-center gap-1 truncate"><Clock className="h-3 w-3 shrink-0" />{s.horaInicio} · {s.duracao}</span>
+                      <span className="flex items-center gap-1 truncate"><User className="h-3 w-3 shrink-0" />{s.formador}</span>
+                    </div>
+                  </div>
+                ))}
+
+              {sessoesDia.length > 3 && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <button
+                    onClick={() => setPaginaSessoesDia((p) => Math.max(0, p - 1))}
+                    disabled={paginaSessoesDia === 0}
+                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors flex items-center justify-center"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                  {Array.from({ length: Math.ceil(sessoesDia.length / 3) }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPaginaSessoesDia(i)}
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full transition-all",
+                        paginaSessoesDia === i ? "bg-teal-500" : "bg-gray-300 dark:bg-gray-600",
+                      )}
+                      title={`Página ${i + 1}`}
+                    />
+                  ))}
+                  <button
+                    onClick={() =>
+                      setPaginaSessoesDia((p) =>
+                        Math.min(Math.ceil(sessoesDia.length / 3) - 1, p + 1),
+                      )
+                    }
+                    disabled={paginaSessoesDia >= Math.ceil(sessoesDia.length / 3) - 1}
+                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors flex items-center justify-center"
+                    title="Próxima página"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Clock className="h-8 w-8 text-gray-200 mb-2" />
+              <p className="text-xs text-gray-400">Nenhuma sessão neste dia</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Próximas Sessões - Em baixo, ocupando toda a largura */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4">Próximas Sessões</h3>
+        <div className="flex flex-col gap-2">
+          {proximas.map(s => {
+            const [, month, day] = s.data.split("-");
+            return (
+              <button key={s.id} onClick={() => setSelected(s.data)}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2.5 text-left hover:border-teal-200 hover:bg-teal-50/30 dark:hover:border-teal-800 dark:hover:bg-teal-900/20 transition-colors"
+              >
+                <div className="flex w-10 shrink-0 flex-col items-center rounded-lg bg-teal-100 py-1.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-teal-500">{MONTHS[parseInt(month) - 1].slice(0, 3)}</span>
+                  <span className="text-sm font-bold leading-tight text-teal-700 dark:text-teal-400">{day}</span>
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{s.titulo}</span>
+                  <span className="text-[11px] text-gray-400">{s.horaInicio} · {s.duracao} · {s.formador}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      </div>
     );
 }

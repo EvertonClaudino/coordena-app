@@ -94,130 +94,177 @@ export function EditarFormandoClient({ formando, cursos }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-xl">
-      {/* Back */}
-      <Link
-        href={`/dashboard/formandos/${formando.id}`}
-        className="flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Voltar ao Perfil
-      </Link>
+    <div className="flex flex-col gap-8 pb-10">
+      {/* Header / Breadcrumb */}
+      <div className="flex flex-col gap-4">
+        <Link
+          href={`/dashboard/formandos/${formando.id}`}
+          className="flex w-fit items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-indigo-600 transition-colors bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar ao Perfil
+        </Link>
 
-      <div>
-        <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100">
-          Editar Formando
-        </h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Atualiza os dados de {formando.nome}
-        </p>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-gray-100">
+            Editar Perfil
+          </h1>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Gerencie as informações básicas e credenciais de {formando.nome}
+          </p>
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 flex flex-col gap-5">
-        {/* Nome */}
-        <div className="flex flex-col gap-1.5">
-          <Label>
-            Nome completo <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            name="nome"
-            value={form.nome}
-            onChange={handleChange}
-            disabled={saving}
-            placeholder="Ex: João Silva"
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Form Fields */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Personal Information */}
+          <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm">
+            <h2 className="mb-8 flex items-center gap-3 text-lg font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight">
+              <span className="h-8 w-1.5 rounded-full bg-indigo-600" />
+              Informações Pessoais
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500">
+                  Nome Completo
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  name="nome"
+                  value={form.nome}
+                  onChange={handleChange}
+                  disabled={saving}
+                  placeholder="Ex: João Silva"
+                  className="bg-gray-50/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 rounded-xl h-11"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500">
+                  Endereço de Email
+                  <span className="text-red-500">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    disabled={saving}
+                    placeholder="Ex: joao@email.com"
+                    className="bg-gray-50/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 rounded-xl h-11"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Security / Password */}
+          <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm">
+            <h2 className="mb-6 flex items-center gap-3 text-lg font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight">
+              <span className="h-8 w-1.5 rounded-full bg-indigo-600" />
+              Segurança e Acesso
+            </h2>
+
+            <div className="flex flex-col gap-2 max-w-md">
+              <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500">
+                Nova Password
+                <span className="text-[10px] text-gray-400 font-bold lowercase">(opcional)</span>
+              </Label>
+              <Input
+                name="novaSenha"
+                type="password"
+                value={form.novaSenha}
+                onChange={handleChange}
+                disabled={saving}
+                placeholder="Introduza apenas se desejar alterar"
+                className="bg-gray-50/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 rounded-xl h-11"
+              />
+              <p className="mt-1 text-[11px] text-gray-400 font-medium">
+                Caso deseje manter a senha atual, deixe este campo em branco.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Email */}
-        <div className="flex flex-col gap-1.5">
-          <Label>
-            Email <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            disabled={saving}
-            placeholder="Ex: joao@email.com"
-          />
-        </div>
+        {/* Sidebar: Academic & Actions */}
+        <div className="flex flex-col gap-6">
+          {/* Academic Selection */}
+          <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm">
+            <h2 className="mb-6 flex items-center gap-3 text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">
+              Configurações
+            </h2>
 
-        {/* Curso */}
-        <div className="flex flex-col gap-1.5">
-          <Label>Curso</Label>
-          <select
-            name="cursoId"
-            value={form.cursoId}
-            onChange={handleChange}
-            disabled={saving}
-            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <option value="">Sem curso</option>
-            {cursos.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="flex flex-col gap-2">
+              <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500">
+                Curso Atribuído
+              </Label>
+              <select
+                name="cursoId"
+                value={form.cursoId}
+                onChange={handleChange}
+                disabled={saving}
+                className="h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-all appearance-none cursor-pointer"
+              >
+                <option value="">Nenhum Curso Selecionado</option>
+                {cursos.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-gray-400 font-medium">
+                O aluno terá acesso aos módulos vinculados a este curso.
+              </p>
+            </div>
+          </div>
 
-        {/* Nova senha */}
-        <div className="flex flex-col gap-1.5">
-          <Label>
-            Nova password{" "}
-            <span className="text-xs text-gray-400">(opcional)</span>
-          </Label>
-          <Input
-            name="novaSenha"
-            type="password"
-            value={form.novaSenha}
-            onChange={handleChange}
-            disabled={saving}
-            placeholder="Deixa em branco para manter a atual"
-          />
-        </div>
+          {/* Actions Card */}
+          <div className="rounded-3xl border border-indigo-100 dark:border-indigo-950 bg-indigo-50/50 dark:bg-indigo-950/20 p-8 shadow-sm">
+            <div className="flex flex-col gap-4">
+              {/* Feedback messages inside actions card for better visibility */}
+              {erro && (
+                <div className="rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 p-4 text-xs font-bold text-red-600 dark:text-red-400 animate-in fade-in slide-in-from-top-2">
+                  {erro}
+                </div>
+              )}
 
-        {/* Feedback */}
-        {erro && (
-          <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
-            {erro}
-          </p>
-        )}
+              {sucesso && (
+                <div className="rounded-xl bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 p-4 text-xs font-bold text-green-600 dark:text-green-400 animate-in fade-in slide-in-from-top-2">
+                  Alterações guardadas com sucesso!
+                </div>
+              )}
 
-        {sucesso && (
-          <p className="rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-600">
-            Alterações guardadas! A redirecionar...
-          </p>
-        )}
+              <Button
+                onClick={handleSubmit}
+                disabled={saving}
+                className="h-12 w-full gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5" />
+                    Guardar Alterações
+                  </>
+                )}
+              </Button>
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-          <Button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />A guardar...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Guardar Alterações
-              </>
-            )}
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={saving}
-            className="rounded-xl"
-          >
-            Cancelar
-          </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={saving}
+                className="h-12 w-full font-bold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

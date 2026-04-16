@@ -17,7 +17,7 @@ export async function getFormadorStats(userId: string) {
     });
 
     if (!formador)
-        return { modulosAtivos: 0, proximasSessoes: 0, convitesPendentes: 0, cursoNome: null };
+        return { modulosAtivos: 0, proximasSessoes: 0, convitesPendentes: 0, numeroCursos: 0 };
 
     const agora = new Date();
 
@@ -37,14 +37,18 @@ export async function getFormadorStats(userId: string) {
         }),
     ]);
 
-    // Obtem o primeiro curso do primeiro modulo
-    const cursoNome = formador.modulosLecionados[0]?.modulo?.curso?.nome || null;
+    // Contar cursos únicos em que o formador está a dar aulas
+    const cursosUnicos = new Set(
+        formador.modulosLecionados
+            .map((fm) => fm.modulo?.cursoId)
+            .filter((cursoId) => cursoId !== null && cursoId !== undefined)
+    );
 
     return {
         modulosAtivos: formador.modulosLecionados.length,
         proximasSessoes,
         convitesPendentes,
-        cursoNome,
+        numeroCursos: cursosUnicos.size,
     };
 }
 

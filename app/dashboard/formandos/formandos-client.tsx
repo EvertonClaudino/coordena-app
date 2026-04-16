@@ -42,10 +42,22 @@ function FormandoCard({
         </Avatar>
 
         <div className="flex flex-1 flex-col gap-0.5 min-w-0">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight truncate">
               {formando.nome}
             </h3>
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0",
+                formando.status === "ATIVO"
+                  ? "border-green-200 bg-green-50 dark:bg-green-950 text-green-600"
+                  : formando.status === "CONCLUÍDO"
+                    ? "border-blue-200 bg-blue-50 dark:bg-blue-950 text-blue-600"
+                    : "border-gray-200 bg-gray-50 dark:bg-gray-800 text-gray-500",
+              )}
+            >
+              {formando.status}
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
@@ -84,35 +96,22 @@ function FormandoCard({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between gap-3 border-t border-gray-100 dark:border-gray-800 pt-4 mt-auto">
-        <span
-          className={cn(
-            "rounded-full border px-4 py-1 text-sm font-medium",
-            formando.status === "ATIVO"
-              ? "border-green-200 bg-green-50 dark:bg-green-950 text-green-600"
-              : formando.status === "CONCLUÍDO"
-                ? "border-blue-200 bg-blue-50 dark:bg-blue-950 text-blue-600"
-                : "border-gray-200 bg-gray-50 dark:bg-gray-800 text-gray-500",
-          )}
-        >
-          {formando.status}
-        </span>
-
-        <div className="flex gap-2">
+      <div className="flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800 pt-4 mt-auto">
+        <div className="flex gap-3 shrink-0">
           {/* Ver Perfil */}
           <Link
             href={`/dashboard/formandos/${formando.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="rounded-full border border-gray-200 dark:border-gray-700 px-4 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+            className="rounded-full border border-gray-200 dark:border-gray-700 px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-indigo-300 hover:text-indigo-600 transition-colors bg-white dark:bg-gray-900 shadow-sm"
           >
-            Ver Perfil
+            Perfil
           </Link>
 
           {/* Editar */}
           <Link
             href={`/dashboard/formandos/${formando.id}/editar`}
             onClick={(e) => e.stopPropagation()}
-            className="rounded-full bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm"
+            className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm"
           >
             Editar
           </Link>
@@ -126,9 +125,9 @@ function FormandoCard({
               e.stopPropagation();
               onDelete(formando.id);
             }}
-            className="rounded-full px-4 py-1.5 text-sm font-medium"
+            className="h-9 w-9 rounded-full p-0 flex items-center justify-center shadow-sm"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-[18px] w-[18px]" />
           </Button>
         </div>
       </div>

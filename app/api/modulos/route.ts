@@ -18,7 +18,19 @@ export async function GET() {
     const modulos = await prisma.modulo.findMany({
       where: modulosFilter,
       orderBy: { ordem: "asc" },
-      include: { curso: { select: { id: true, nome: true } } },
+      include: { 
+        curso: { select: { id: true, nome: true } },
+        formadores: {
+          select: {
+            formador: {
+              select: {
+                id: true,
+                user: { select: { id: true, nome: true } }
+              }
+            }
+          }
+        }
+      },
     });
     return NextResponse.json(modulos);
   } catch (error) {
