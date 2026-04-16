@@ -2,8 +2,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// ─── POST /api/convites ──────────────────────────────────────────────────────
-
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -21,30 +19,58 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!cursoId && !moduloId) {
+    // Se for convite para FORMADOR -> obrigar moduloId
+    if (formadorId && !moduloId) {
       return NextResponse.json(
-        { error: "É necessário indicar cursoId ou moduloId" },
+        { error: "Para convidar um formador é necessário indicar moduloId" },
         { status: 400 },
       );
     }
 
-    // Se moduloId foi dado, buscar o cursoId associado
+    // Se for convite para FORMANDO -> obrigar cursoId
+    if (formandoId && !cursoId) {
+      return NextResponse.json(
+        { error: "Para convidar um formando é necessário indicar cursoId" },
+        { status: 400 },
+      );
+    }
+
+    // Se moduloId foi dado, buscar o cursoId associado e validar
     let finalCursoId = cursoId;
-    if (moduloId && !cursoId) {
+
+    if (moduloId) {
       const modulo = await prisma.modulo.findUnique({
         where: { id: moduloId },
         select: { cursoId: true },
       });
+
       if (!modulo) {
         return NextResponse.json(
           { error: "Módulo não encontrado" },
           { status: 404 },
         );
       }
+
+      // Se cursoId veio junto, validar consistência
+      if (cursoId && modulo.cursoId !== cursoId) {
+        return NextResponse.json(
+          { error: "O módulo não pertence ao curso informado" },
+          { status: 400 },
+        );
+      }
+
       finalCursoId = modulo.cursoId;
     }
 
-    // Verificar se já existe convite pendente para este par
+    // Segurança: garantir que temos cursoId final
+    if (!finalCursoId) {
+      return NextResponse.json(
+        { error: "Não foi possível determinar o cursoId" },
+        { status: 400 },
+      );
+    }
+
+    // Verificar se já existe convite pendente
     const existingConvite = await prisma.convite.findFirst({
       where: {
         ...(formadorId ? { formadorId } : {}),

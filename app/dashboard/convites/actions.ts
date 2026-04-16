@@ -14,14 +14,14 @@ export async function responderConvite(
     if (!session?.user?.id) {
       return { success: false, mensagem: "Não autorizado" };
     }
-    // Validar ownership — detetar se é formador ou formando
+
     const convite = await prisma.convite.findUnique({
       where: { id: conviteId },
       include: { formando: true, formador: true },
     });
+
     if (!convite) return { success: false, mensagem: "Convite não encontrado" };
 
-    // Validar ownership: formador OU formando
     const eFormador = convite.formador?.userId === session.user.id;
     const eFormando = convite.formando?.userId === session.user.id;
 
@@ -56,7 +56,6 @@ export async function responderConvite(
       convite.formadorId &&
       convite.moduloId
     ) {
-      // Verificar se já está associado ao módulo
       const existente = await prisma.formadorModulo.findFirst({
         where: {
           formadorId: convite.formadorId,
@@ -81,7 +80,6 @@ export async function responderConvite(
       convite.formadorId &&
       convite.moduloId
     ) {
-      // Remover a associação do módulo
       await prisma.formadorModulo.deleteMany({
         where: {
           formadorId: convite.formadorId,
@@ -97,7 +95,6 @@ export async function responderConvite(
       conviteDetalhes.formandoId &&
       conviteDetalhes.cursoId
     ) {
-      // Verificar se já está inscrito
       const existente = await prisma.inscricao.findFirst({
         where: {
           formandoId: conviteDetalhes.formandoId,
@@ -123,7 +120,6 @@ export async function responderConvite(
       convite.formandoId &&
       convite.cursoId
     ) {
-      // Remover a inscrição do curso
       await prisma.inscricao.deleteMany({
         where: {
           formandoId: convite.formandoId,
@@ -137,6 +133,7 @@ export async function responderConvite(
     revalidatePath("/dashboard/modulos-atribuidos");
     revalidatePath("/dashboard/meus-cursos-formando");
     revalidatePath("/dashboard");
+
     return { success: true };
   } catch (error) {
     logError("Erro ao responder convite:", error);
@@ -152,14 +149,15 @@ export async function criarConvite(formData: FormData) {
     }
 
     const formadorId = formData.get("formadorId") as string;
+    const cursoId = formData.get("cursoId") as string;
     const moduloId = formData.get("moduloId") as string;
     const descricao = formData.get("descricao") as string;
 
-    if (!formadorId || !moduloId || !descricao) {
+    if (!formadorId || !cursoId || !moduloId || !descricao) {
       throw new Error("Campos obrigatórios não preenchidos");
     }
 
-    // Verificar se o módulo existe e pertence ao coordenador
+    // Verificar se o módulo existe e pertence ao curso selecionado
     const modulo = await prisma.modulo.findUnique({
       where: { id: moduloId },
       include: {
@@ -176,15 +174,21 @@ export async function criarConvite(formData: FormData) {
       throw new Error("Módulo não encontrado");
     }
 
+    // Validar se o módulo pertence ao curso escolhido
+    if (modulo.cursoId !== cursoId) {
+      throw new Error("O módulo selecionado não pertence ao curso escolhido");
+    }
+
     // Verificar se o formador está associado ao módulo
     const formadorAssociado = modulo.formadores.some(
       (fm: { formadorId: string }) => fm.formadorId === formadorId,
     );
+
     if (!formadorAssociado) {
       throw new Error("Formador não está associado a este módulo");
     }
 
-    // Verificar se já existe um convite ativo para este formador neste módulo
+    // Verificar se já existe um convite pendente para este formador neste módulo
     const conviteExistente = await prisma.convite.findFirst({
       where: {
         formadorId: formadorId,
@@ -203,6 +207,7 @@ export async function criarConvite(formData: FormData) {
     await prisma.convite.create({
       data: {
         formadorId: formadorId,
+        cursoId: cursoId,
         moduloId: moduloId,
         descricao: descricao,
         status: "PENDENTE",

@@ -1,12 +1,11 @@
+//page.tsx
 import { auth } from "@/auth";
 import { ConvitesFormando } from "./_components/convites-formando";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { Mail, Plus, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Mail, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConviteForm } from "./_components/convite-form";
-import { criarConvite } from "./actions";
 
 // ─── PÁGINA PRINCIPAL ───────────────────────────────────────────────────────
 export default async function ConvitesPage() {
@@ -17,9 +16,7 @@ export default async function ConvitesPage() {
     where: { email: session.user.email! },
     include: { formador: true, formando: true },
   });
-  const _role = session.user.role || "FORMANDO";
 
-  // Se for FORMANDO, carrega os convites
   if (!user) redirect("/login");
 
   // =======================================================================
@@ -66,8 +63,9 @@ export default async function ConvitesPage() {
     const mappedParaClient = convitesFormador.map((c: any) => ({
       id: c.id,
       modulo: c.modulo?.nome || "Módulo Geral",
-      codigo: c.modulo?.id.substring(0, 8).toUpperCase() || "---",
+      codigo: c.modulo?.id?.substring(0, 8).toUpperCase() || "---",
       curso: c.curso?.nome || "Curso Indefinido",
+      descricao: c.descricao || "",
       coordenador: "Coordenador",
       dataEnvio: c.dataEnvio.toLocaleDateString(),
       status: c.status.toLowerCase() as "pendente" | "aceite" | "recusado",
@@ -155,12 +153,10 @@ export default async function ConvitesPage() {
   // 3. SE FOR COORDENADOR
   // =======================================================================
   if (user.role === "COORDENADOR") {
-    // Buscar o coordenador logado
     const coordenador = await prisma.coordenador.findUnique({
       where: { userId: user.id },
     });
 
-    // Filtrar apenas convites dos cursos do coordenador
     const convitesAll = coordenador
       ? await prisma.convite.findMany({
           where: {
@@ -168,12 +164,15 @@ export default async function ConvitesPage() {
               coordenadorId: coordenador.id,
             },
           },
-          include: { formador: { include: { user: true } }, curso: true },
+          include: {
+            formador: { include: { user: true } },
+            curso: true,
+            modulo: true,
+          },
           orderBy: { dataEnvio: "desc" },
         })
       : [];
 
-    // Buscar apenas formadores que têm módulos nos cursos do coordenador
     const formadores = coordenador
       ? await prisma.formador.findMany({
           where: {
@@ -191,14 +190,12 @@ export default async function ConvitesPage() {
         })
       : [];
 
-    // Buscar apenas cursos do coordenador
     const cursos = coordenador
       ? await prisma.curso.findMany({
           where: { coordenadorId: coordenador.id },
         })
       : [];
 
-    // Buscar módulos dos cursos do coordenador
     const modulos = coordenador
       ? await prisma.modulo.findMany({
           where: {
@@ -270,6 +267,9 @@ export default async function ConvitesPage() {
                         <span className="text-xs text-gray-500">
                           Curso: {convite.curso?.nome || "N/A"}
                         </span>
+                        <span className="text-xs text-gray-500">
+                          Módulo: {convite.modulo?.nome || "N/A"}
+                        </span>
                         <span className="text-xs italic text-gray-400 mt-1">
                           &ldquo;{convite.descricao}&rdquo;
                         </span>
@@ -307,6 +307,5 @@ export default async function ConvitesPage() {
     );
   }
 
-  // Fallback se não bater em nenhuma role (Segurança)
   return <div>Perfil inválido ou sem permissões.</div>;
 }
