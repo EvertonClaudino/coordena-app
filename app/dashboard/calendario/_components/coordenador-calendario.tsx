@@ -34,6 +34,12 @@ interface Modulo {
   id: string;
   nome: string;
   curso?: { id: string; nome: string } | null;
+  formadores?: Array<{
+    formador: {
+      id: string;
+      user: { id: string; nome: string };
+    };
+  }>;
 }
 interface Formador {
   id: string;
@@ -147,7 +153,38 @@ function NovaSessaoDialog({
     (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setErro(null);
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      const value = e.target.value;
+      
+      // Se está a selecionar um módulo, preencher automaticamente o formador
+      if (field === "moduloId") {
+        const moduloSelecionado = modulos.find((m) => m.id === value);
+        const formadoresDoModulo = moduloSelecionado?.formadores || [];
+        
+        if (formadoresDoModulo.length === 1) {
+          // Se tem exatamente um formador, preencher automaticamente
+          setForm((prev) => ({
+            ...prev,
+            moduloId: value,
+            formadorId: formadoresDoModulo[0].formador.id,
+          }));
+        } else if (formadoresDoModulo.length > 1) {
+          // Se tem vários, deixar o primeiro selecionado por padrão
+          setForm((prev) => ({
+            ...prev,
+            moduloId: value,
+            formadorId: formadoresDoModulo[0].formador.id,
+          }));
+        } else {
+          // Se não tem nenhum, apenas atualizar o módulo
+          setForm((prev) => ({
+            ...prev,
+            moduloId: value,
+            formadorId: "",
+          }));
+        }
+      } else {
+        setForm((prev) => ({ ...prev, [field]: value }));
+      }
     };
 
   async function handleSubmit() {
@@ -256,19 +293,62 @@ function NovaSessaoDialog({
 
           {/* Formador */}
           <div className="flex flex-col gap-1.5">
-            <Label>Formador *</Label>
-            <select
-              value={form.formadorId}
-              onChange={set("formadorId")}
-              className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">Seleciona um formador…</option>
-              {formadores.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.user.nome}
-                </option>
-              ))}
-            </select>
+            <Label>
+              Formador *
+              {form.moduloId && (
+                <span className="text-xs text-gray-500 ml-2">
+                  (automático do módulo)
+                </span>
+              )}
+            </Label>
+            {(() => {
+              const moduloSelecionado = modulos.find((m) => m.id === form.moduloId);
+              const formadoresDisponiveis = moduloSelecionado?.formadores?.map(
+                (fm) => fm.formador
+              ) || [];
+
+              // Se não há módulo selecionado
+              if (!form.moduloId) {
+                return (
+                  <div className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm flex items-center text-gray-500">
+                    Seleciona um módulo primeiro
+                  </div>
+                );
+              }
+
+              // Se há módulo mas não tem formador
+              if (formadoresDisponiveis.length === 0) {
+                return (
+                  <div className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm flex items-center text-amber-600">
+                    Este módulo não tem formador associado
+                  </div>
+                );
+              }
+
+              // Se tem 1 formador, mostrar como texto (apenas informativo)
+              if (formadoresDisponiveis.length === 1) {
+                return (
+                  <div className="h-10 w-full rounded-md border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-2 text-sm flex items-center text-indigo-700 dark:text-indigo-300 font-medium">
+                    ✓ {formadoresDisponiveis[0].user.nome}
+                  </div>
+                );
+              }
+
+              // Se tem vários formadores, mostrar select
+              return (
+                <select
+                  value={form.formadorId}
+                  onChange={set("formadorId")}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {formadoresDisponiveis.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.user.nome}
+                    </option>
+                  ))}
+                </select>
+              );
+            })()}
           </div>
 
           {/* Data e hora */}
@@ -355,6 +435,7 @@ export default function CoordenadorCalendario() {
   const [formadores, setFormadores] = useState<Formador[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [paginaSessoesDia, setPaginaSessoesDia] = useState(0);
 
   const todayISO = toISO(
     today.getFullYear(),
@@ -449,9 +530,9 @@ export default function CoordenadorCalendario() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-[1fr_380px] items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr] items-stretch">
         {/* Calendar grid */}
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 self-start">
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={prevMonth}
@@ -530,125 +611,121 @@ export default function CoordenadorCalendario() {
           </div>
         </div>
 
-        {/* Right panel */}
-        <div className="flex flex-col gap-4">
-          {/* Sessões do dia */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm flex flex-col min-h-0">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 capitalize">
-                  {selectedLabel ?? "Seleciona um dia"}
-                </h3>
-                <p className="text-[11px] text-gray-500">
-                  {aulasDia.length > 0
-                    ? `${aulasDia.length} sessão(ões)`
-                    : "Sem sessões"}
-                </p>
-              </div>
+        {/* Sessões do dia - Direita */}
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm flex flex-col min-h-0">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 capitalize">
+                {selectedLabel ?? "Seleciona um dia"}
+              </h3>
+              <p className="text-[11px] text-gray-500">
+                {aulasDia.length > 0
+                  ? `${aulasDia.length} sessão(ões)`
+                  : "Sem sessões"}
+              </p>
             </div>
-
-            {aulasDia.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {aulasDia
-                  .sort(
-                    (a, b) =>
-                      new Date(a.dataHora).getTime() -
-                      new Date(b.dataHora).getTime(),
-                  )
-                  .slice(0, 4)
-                  .map((aula) => (
-                    <div
-                      key={aula.id}
-                      className={cn(
-                        "rounded-xl border p-3 flex flex-col gap-1.5 transition-all hover:shadow-md",
-                        corModulo(aula.moduloId),
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2 min-w-0">
-                        <p className="text-xs font-bold leading-tight truncate flex-1 min-w-0">
-                          {aula.titulo}
-                        </p>
-                        <button
-                          onClick={() => handleDelete(aula.id)}
-                          disabled={deleting === aula.id}
-                          className="shrink-0 rounded-lg p-1 opacity-60 hover:opacity-100 hover:bg-white/50 transition-all"
-                          title="Eliminar sessão"
-                        >
-                          {deleting === aula.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </button>
-                      </div>
-                      
-                      <div className="flex flex-col gap-1">
-                        <div className="text-[10px] font-bold opacity-70 truncate px-1.5 py-0.5 rounded-md bg-white/40 w-fit max-w-full">
-                          {aula.modulo.curso?.nome || "Sem curso"} · {aula.modulo.nome}
-                        </div>
-                        <div className="flex items-center gap-3 text-[10px] opacity-80 font-medium">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-2.5 w-2.5" />
-                            {formatTime(aula)} ({formatDuracao(aula.duracao)})
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="h-2.5 w-2.5" />
-                            {aula.formador.user.nome.split(" ")[0]}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                {aulasDia.length > 4 && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button className="w-full mt-1 py-2 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-100 dark:border-indigo-900/50">
-                        + {aulasDia.length - 4} sessão(ões) hoje
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg">
-                      <DialogHeader>
-                        <DialogTitle>Sessões de {selectedLabel}</DialogTitle>
-                        <DialogDescription>
-                          Lista completa de sessoes para este dia.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="flex flex-col gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                        {aulasDia
-                          .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime())
-                          .map((aula) => (
-                            <div key={aula.id} className={cn("rounded-xl border p-4 flex items-center justify-between gap-4", corModulo(aula.moduloId))}>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-bold truncate">{aula.titulo}</h4>
-                                <p className="text-xs opacity-80 mt-0.5">
-                                  {formatTime(aula)} · {aula.modulo.nome} · {aula.formador.user.nome}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => handleDelete(aula.id)}
-                                disabled={deleting === aula.id}
-                                className="p-2 rounded-lg hover:bg-white/50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <Clock className="h-8 w-8 text-gray-200 mb-2" />
-                <p className="text-[11px] text-gray-400">Nenhuma sessão neste dia</p>
-              </div>
-            )}
           </div>
 
-          {/* Próximas sessões - Compacto */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+          {aulasDia.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {aulasDia
+                .sort(
+                  (a, b) =>
+                    new Date(a.dataHora).getTime() -
+                    new Date(b.dataHora).getTime(),
+                )
+                .slice(paginaSessoesDia * 3, (paginaSessoesDia + 1) * 3)
+                .map((aula) => (
+                  <div
+                    key={aula.id}
+                    className={cn(
+                      "rounded-xl border p-3 flex flex-col gap-1.5 transition-all hover:shadow-md",
+                      corModulo(aula.moduloId),
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <p className="text-xs font-bold leading-tight truncate flex-1 min-w-0">
+                        {aula.titulo}
+                      </p>
+                      <button
+                        onClick={() => handleDelete(aula.id)}
+                        disabled={deleting === aula.id}
+                        className="shrink-0 rounded-lg p-1 opacity-60 hover:opacity-100 hover:bg-white/50 transition-all"
+                        title="Eliminar sessão"
+                      >
+                        {deleting === aula.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3 w-3" />
+                        )}
+                      </button>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1">
+                      <div className="text-[10px] font-bold opacity-70 truncate px-1.5 py-0.5 rounded-md bg-white/40 w-fit max-w-full">
+                        {aula.modulo.curso?.nome || "Sem curso"} · {aula.modulo.nome}
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] opacity-80 font-medium">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-2.5 w-2.5" />
+                          {formatTime(aula)} ({formatDuracao(aula.duracao)})
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-2.5 w-2.5" />
+                          {aula.formador.user.nome.split(" ")[0]}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+              {aulasDia.length > 3 && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <button
+                    onClick={() => setPaginaSessoesDia((p) => Math.max(0, p - 1))}
+                    disabled={paginaSessoesDia === 0}
+                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors flex items-center justify-center"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                  {Array.from({ length: Math.ceil(aulasDia.length / 3) }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPaginaSessoesDia(i)}
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full transition-all",
+                        paginaSessoesDia === i ? "bg-indigo-600" : "bg-gray-300 dark:bg-gray-600",
+                      )}
+                      title={`Página ${i + 1}`}
+                    />
+                  ))}
+                  <button
+                    onClick={() =>
+                      setPaginaSessoesDia((p) =>
+                        Math.min(Math.ceil(aulasDia.length / 3) - 1, p + 1),
+                      )
+                    }
+                    disabled={paginaSessoesDia >= Math.ceil(aulasDia.length / 3) - 1}
+                    className="h-6 w-6 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors flex items-center justify-center"
+                    title="Próxima página"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <Clock className="h-8 w-8 text-gray-200 mb-2" />
+              <p className="text-[11px] text-gray-400">Nenhuma sessão neste dia</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Próximas sessões - Em baixo, ocupando toda a largura */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <h3 className="text-xs font-bold text-gray-400 tracking-widest uppercase mb-4 px-1">
               Próximas Sessões
             </h3>
@@ -658,43 +735,100 @@ export default function CoordenadorCalendario() {
               </p>
             ) : (
               <div className="flex flex-col gap-2">
-                {proximas.map((aula) => {
-                  const [, month, day] = aulaDateISO(aula).split("-");
-                  const moduloColor = corModulo(aula.moduloId).split(" ")[1].replace("text-", "bg-");
-                  return (
-                    <button
-                      key={aula.id}
-                      onClick={() => setSelectedDate(aulaDateISO(aula))}
-                      className="group flex items-center gap-3 rounded-xl border border-transparent bg-gray-50/50 dark:bg-gray-800/40 px-3 py-2 text-left hover:border-indigo-200 hover:bg-white dark:hover:bg-gray-800 dark:hover:border-indigo-800 transition-all duration-200"
-                    >
-                      <div className="flex w-10 h-10 shrink-0 flex-col items-center justify-center rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 group-hover:bg-indigo-600 transition-colors">
-                        <span className="text-[9px] font-bold uppercase text-gray-400 group-hover:text-indigo-200">
-                          {MONTHS[parseInt(month) - 1].slice(0, 3)}
-                        </span>
-                        <span className="text-sm font-black text-gray-700 dark:text-gray-200 group-hover:text-white">
-                          {day}
-                        </span>
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <div className={cn("h-1.5 w-1.5 rounded-full", moduloColor)} />
-                          <span className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">
-                            {aula.titulo}
+                {proximas
+                  .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime())
+                  .slice(0, 3)
+                  .map((aula) => {
+                    const [, month, day] = aulaDateISO(aula).split("-");
+                    const moduloColor = corModulo(aula.moduloId).split(" ")[1].replace("text-", "bg-");
+                    return (
+                      <button
+                        key={aula.id}
+                        onClick={() => setSelectedDate(aulaDateISO(aula))}
+                        className="group flex items-center gap-3 rounded-xl border border-transparent bg-gray-50/50 dark:bg-gray-800/40 px-3 py-2 text-left hover:border-indigo-200 hover:bg-white dark:hover:bg-gray-800 dark:hover:border-indigo-800 transition-all duration-200"
+                      >
+                        <div className="flex w-10 h-10 shrink-0 flex-col items-center justify-center rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 group-hover:bg-indigo-600 transition-colors">
+                          <span className="text-[9px] font-bold uppercase text-gray-400 group-hover:text-indigo-200">
+                            {MONTHS[parseInt(month) - 1].slice(0, 3)}
+                          </span>
+                          <span className="text-sm font-black text-gray-700 dark:text-gray-200 group-hover:text-white">
+                            {day}
                           </span>
                         </div>
-                        <p className="text-[10px] text-gray-400 font-medium truncate">
-                           {formatTime(aula)} · {aula.modulo.nome.split("—")[0]}
-                        </p>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <div className={cn("h-1.5 w-1.5 rounded-full", moduloColor)} />
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">
+                              {aula.titulo}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 font-medium truncate">
+                             {formatTime(aula)} · {aula.modulo.nome.split(" - ")[0]}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                {proximas.length > 3 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="w-full mt-1 py-2 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl hover:bg-indigo-100 transition-colors border border-indigo-100 dark:border-indigo-900/50">
+                        + {proximas.length - 3} sessão(ões) futura(s)
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Próximas Sessões</DialogTitle>
+                        <DialogDescription>
+                          Lista completa de sessões futuras.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {proximas
+                          .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime())
+                          .map((aula) => {
+                            const [, month, day] = aulaDateISO(aula).split("-");
+                            const moduloColor = corModulo(aula.moduloId).split(" ")[1].replace("text-", "bg-");
+                            return (
+                              <button
+                                key={aula.id}
+                                onClick={() => {
+                                  setSelectedDate(aulaDateISO(aula));
+                                }}
+                                className="group flex items-center gap-3 rounded-xl border border-transparent bg-gray-50/50 dark:bg-gray-800/40 px-3 py-2 text-left hover:border-indigo-200 hover:bg-white dark:hover:bg-gray-800 dark:hover:border-indigo-800 transition-all duration-200"
+                              >
+                                <div className="flex w-10 h-10 shrink-0 flex-col items-center justify-center rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 group-hover:bg-indigo-600 transition-colors">
+                                  <span className="text-[9px] font-bold uppercase text-gray-400 group-hover:text-indigo-200">
+                                    {MONTHS[parseInt(month) - 1].slice(0, 3)}
+                                  </span>
+                                  <span className="text-sm font-black text-gray-700 dark:text-gray-200 group-hover:text-white">
+                                    {day}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    <div className={cn("h-1.5 w-1.5 rounded-full", moduloColor)} />
+                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">
+                                      {aula.titulo}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-gray-400 font-medium truncate">
+                                     {formatTime(aula)} · {aula.modulo.nome.split(" - ")[0]}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
                       </div>
-                    </button>
-                  );
-                })}
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             )}
           </div>
-        </div>
-      </div>
     </div>
   );
 }
