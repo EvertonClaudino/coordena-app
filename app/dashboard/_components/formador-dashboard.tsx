@@ -15,7 +15,7 @@ export async function FormadorDashboard({ userName, userId }: { userName: string
 
   const kpis = [
     { label: 'MÓDULOS ATIVOS', value: stats.modulosAtivos, icon: BookOpen, bg: 'bg-purple-50 dark:bg-purple-950/50', iconBg: 'bg-purple-100 dark:bg-purple-900/50', iconColor: 'text-purple-500' },
-    { label: 'CURSO', value: stats.cursoNome || 'N/A', icon: Briefcase, bg: 'bg-green-50 dark:bg-green-950/50', iconBg: 'bg-green-100 dark:bg-green-900/50', iconColor: 'text-green-500' },
+    { label: 'CURSOS', value: stats.numeroCursos, icon: Briefcase, bg: 'bg-green-50 dark:bg-green-950/50', iconBg: 'bg-green-100 dark:bg-green-900/50', iconColor: 'text-green-500' },
     { label: 'PRÓXIMAS SESSÕES', value: stats.proximasSessoes, icon: Clock, bg: 'bg-blue-50 dark:bg-blue-950/50', iconBg: 'bg-blue-100 dark:bg-blue-900/50', iconColor: 'text-blue-500' },
     { label: 'CONVITES PENDENTES', value: stats.convitesPendentes, icon: Mail, bg: 'bg-amber-50 dark:bg-amber-950/50', iconBg: 'bg-amber-100 dark:bg-amber-900/50', iconColor: 'text-amber-500' }
   ]
